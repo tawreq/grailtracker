@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grail Break Ratio Tracker</title>
+<meta name="description" content="Live valuation ratios for Grail Break ($BREAK) against Collector Crypt ($CARDS).">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+:root {
+  --bg: #faf9f5; --panel: #ffffff; --line: #e6e3da; --fg: #1f1e1b; --muted: #6b6a65;
+  --accent: #2c6fd6; --grey: #c2c1b6; --grid: #eeece5; --ref: #8a887f; --bad: #c0453a;
+  --radius: 10px; --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --serif: Georgia, "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1d1c1a; --panel: #262523; --line: #3a3935; --fg: #f0eee8; --muted: #a3a19a; --accent: #5b93ea; --grey: #5c5b56; --grid: #302f2c; --ref: #8f8d85; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--serif); font-weight: 400; font-size: 2rem; margin: 0; }
+.take { color: var(--muted); margin: 6px 0 0; max-width: 46rem; line-height: 1.5; }
+.take b { color: var(--fg); font-weight: 600; }
+.stamp { color: var(--muted); font-size: .8rem; margin-top: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: 12px; }
+.tile, .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
+.tile .l { font-size: .78rem; color: var(--muted); }
+.tile .n { font-family: var(--serif); font-size: 1.7rem; margin: 6px 0; font-variant-numeric: tabular-nums; }
+.tile .s { font-size: .78rem; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 12px; }
+.wide { grid-column: 1 / -1; }
+.card h2 { font-size: 1rem; font-weight: 600; margin: 0; }
+.note { font-size: .78rem; color: var(--muted); margin: 4px 0 14px; }
+.chart { position: relative; min-height: 260px; }
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 18px; }
+.pt { font-size: .9rem; font-weight: 600; }
+.pc { font-size: .78rem; color: var(--muted); margin-bottom: 8px; }
+.bar { display: grid; grid-template-columns: 4.2rem 1fr; align-items: center; gap: 8px; margin: 6px 0; font-size: .8rem; }
+.bar .nm { color: var(--muted); }
+.track { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.fill { height: 20px; border-radius: 4px; flex: none; }
+.v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .8rem; font-variant-numeric: tabular-nums; }
+th { color: var(--muted); font-weight: 600; text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+.tip { position: absolute; display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 6px 10px; font-size: .78rem; pointer-events: none; white-space: nowrap; z-index: 2; }
+.tip .d { color: var(--muted); }
+.err { color: var(--bad); font-size: .85rem; }
+footer { color: var(--muted); font-size: .78rem; line-height: 1.5; }
+footer p { margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Grail Break ratio tracker</h1>
+    <p class="take" id="take">Loading live data…</p>
+    <div class="stamp" id="stamp"></div>
+  </header>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="grid">
+    <div class="card wide">
+      <h2>$CARDS vs $BREAK at a glance</h2>
+      <p class="note">$CARDS over 30 days; $BREAK over its last 5 full days. Each panel has its own scale.</p>
+      <div class="cmp" id="cmp"></div>
+    </div>
+    <div class="card">
+      <h2>Revenue multiple, trailing 5 days</h2>
+      <p class="note">Current market cap divided by each day's trailing 5-day net revenue, annualized. Dashed line: $CARDS.</p>
+      <div class="chart" id="trail"></div>
+    </div>
+    <div class="card">
+      <h2>Implied value at the $CARDS multiple</h2>
+      <p class="note">Annualized net revenue for each window, valued at $CARDS's market cap / revenue multiple.</p>
+      <div class="scroll"><table><thead><tr><th>Revenue window</th><th>Net / day</th><th>Implied cap</th><th>Implied price</th><th>vs today</th></tr></thead><tbody id="implied"></tbody></table></div>
+    </div>
+    <div class="card wide">
+      <h2>Daily volume and net revenue</h2>
+      <p class="note">Eastern-time days since launch; the faded bar is today so far.</p>
+      <div class="chart" id="daily" style="min-height:300px"></div>
+    </div>
+    <div class="card">
+      <h2>Ratios by window</h2>
+      <p class="note">Averages per day; Grail Break windows leave out today's partial day.</p>
+      <div class="scroll"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Cap / annual rev.</th></tr></thead><tbody id="ratios"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Volume by product, since launch</h2>
+      <p class="note">Sell-backs are cards sold back for USDC, so about half of volume flows back out.</p>
+      <div id="prod"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Data: Grail Break's platform numbers (volume, net revenue), DexScreener (prices, market caps), DefiLlama (Collector Crypt 30-day pack sales and revenue). Refreshes every 5 minutes. Net revenue includes $BREAK trading fees claimed by Grail Break, not only product fees.</p>
+    <p>For information only. Not financial advice.</p>
+  </footer>
+</div>
+
+<script>
+const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+const F = {
+  usd: v => Math.abs(v) >= 10000 ? '$' + compact.format(v) : d3.format('$,.0f')(v),
+  pct: v => (Math.abs(v) >= 0.1 ? d3.format('.1%') : d3.format('.2%'))(v),
+  mult: v => d3.format('.2f')(v) + 'x',
+  times: v => d3.format('.1f')(v) + 'x',
+  price: v => '$' + d3.format('.3~r')(v),
+  int: v => d3.format(',')(v)
+};
+const day = d => d3.utcFormat('%b %-d')(new Date(d));
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+let DATA = null;
+
+function tipFor(box) {
+  let t = box.querySelector(':scope > .tip');
+  if (!t) { t = el('div', 'tip'); box.appendChild(t); }
+  return {
+    show(x, y, head, line) { t.replaceChildren(el('div', 'd', head), el('div', '', line)); t.style.display = 'block'; t.style.left = Math.max(0, Math.min(x + 12, box.clientWidth - t.offsetWidth)) + 'px'; t.style.top = Math.max(0, y - 44) + 'px'; },
+    hide() { t.style.display = 'none'; }
+  };
+}
+
+function render() {
+  const D = DATA; if (!D) return;
+  const R = Object.fromEntries(D.ratios.map(r => [r.key, r]));
+  const I = Object.fromEntries(D.implied.map(r => [r.key, r]));
+  const c = R.cards_30d, b = R.break_5d;
+
+  const take = document.getElementById('take'); take.replaceChildren();
+  take.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK trades at ', el('b', '', F.mult(b.cap_to_revenue)),
+    ' its last-5-day net revenue run rate, against ', el('b', '', F.mult(c.cap_to_revenue)), ' for $CARDS: ', el('b', '', F.times(b.discount_vs_cards)), ' cheaper per dollar of revenue.');
+  document.getElementById('stamp').textContent = `Updated ${new Date(D.updated).toLocaleString()}` + (D.errors && D.errors.length ? ` · some sources failed: ${D.errors.join('; ')}` : '');
+
+  const tiles = [
+    ['Market cap', F.usd(b.market_cap), `Price ${F.price(D.breakPrice)}`],
+    ['Net revenue per day', F.usd(b.net_day), 'Last 5 full days'],
+    ['Market cap / annual revenue', F.mult(b.cap_to_revenue), `$CARDS ${F.mult(c.cap_to_revenue)}`],
+    ['Daily net revenue / cap', F.pct(b.net_to_cap), `$CARDS ${F.pct(c.net_to_cap)}`],
+    ['Daily volume / cap', F.pct(b.gross_to_cap), `$CARDS ${F.pct(c.gross_to_cap)}`],
+    ['Implied price at $CARDS multiple', F.price(I.break_5d.implied_price), `${F.times(I.break_5d.upside)} today's price`]
+  ];
+  document.getElementById('tiles').replaceChildren(...tiles.map(([l, n, s]) => { const t = el('div', 'tile'); t.append(el('div', 'l', l), el('div', 'n', n), el('div', 's', s)); return t; }));
+
+  const panels = [
+    ['gross_to_cap', 'Daily volume / market cap', F.pct, (a, z) => `$BREAK ${F.times(z / a)} higher`],
+    ['net_to_cap', 'Daily net revenue / market cap', F.pct, (a, z) => `$BREAK ${F.times(z / a)} higher`],
+    ['margin', 'Net margin (net / volume)', F.pct, (a, z) => `$BREAK ${F.times(a / z)} lower`],
+    ['cap_to_revenue', 'Market cap / annual revenue', F.mult, (a, z) => `$BREAK ${F.times(a / z)} cheaper`]
+  ];
+  document.getElementById('cmp').replaceChildren(...panels.map(([f, t, fmt, say]) => {
+    const p = el('div'); p.append(el('div', 'pt', t), el('div', 'pc', say(c[f], b[f])));
+    const mx = Math.max(c[f], b[f]);
+    [[c, '$CARDS', 'var(--grey)'], [b, '$BREAK', 'var(--accent)']].forEach(([r, name, color]) => {
+      const bar = el('div', 'bar'), tr = el('div', 'track'), fill = el('div', 'fill');
+      fill.style.width = `calc((100% - 4rem) * ${Math.max(r[f] / mx, 0.01)})`; fill.style.background = color;
+      tr.append(fill, el('span', 'v', fmt(r[f]))); bar.append(el('span', 'nm', name), tr); p.append(bar);
+    });
+    return p;
+  }));
+
+  const rowsTo = (id, rows, cols) => document.getElementById(id).replaceChildren(...rows.map(r => { const tr = el('tr'); cols.forEach(([k, f]) => tr.append(el('td', '', f ? f(r[k]) : r[k]))); return tr; }));
+  rowsTo('implied', D.implied, [['label'], ['net_day', F.usd], ['implied_cap', F.usd], ['implied_price', F.price], ['upside', F.times]]);
+  rowsTo('ratios', D.ratios, [['label'], ['gross_day', F.usd], ['net_day', F.usd], ['margin', F.pct], ['net_to_cap', F.pct], ['cap_to_revenue', F.mult]]);
+
+  const prods = [...D.products].sort((a, z) => z.volume - a.volume), pm = d3.max(prods, d => d.volume);
+  document.getElementById('prod').replaceChildren(...prods.map(d => {
+    const bar = el('div', 'bar'), tr = el('div', 'track'), fill = el('div', 'fill');
+    bar.style.gridTemplateColumns = '7rem 1fr';
+    fill.style.width = `calc((100% - 7rem) * ${Math.max(d.volume / pm, 0.01)})`;
+    fill.style.background = d.product === 'Card sell-backs' ? 'var(--grey)' : 'var(--accent)';
+    tr.append(fill, el('span', 'v', `${F.usd(d.volume)} · ${F.int(d.count)}`)); bar.append(el('span', 'nm', d.product), tr); return bar;
+  }));
+
+  drawTrailing(D.trailing, c.cap_to_revenue);
+  drawDaily(D.daily);
+}
+
+function drawTrailing(rows, ref) {
+  const box = document.getElementById('trail'); box.querySelectorAll('svg').forEach(s => s.remove());
+  if (!rows.length) return;
+  const W = Math.max(box.clientWidth, 280), H = 260, m = { l: 44, r: 92, t: 16, b: 28 };
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px');
+  const x = d3.scalePoint(rows.map(r => r.day), [m.l, W - m.r]).padding(0.3);
+  const y = d3.scaleLinear([0, d3.max([ref, ...rows.map(r => r.cap_to_revenue)]) * 1.1], [H - m.b, m.t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--muted)').text(d => d3.format('.1f')(d) + 'x');
+  const step = W < 420 ? 2 : 1;
+  svg.append('g').selectAll('text').data(rows.filter((r, i) => i % step === 0)).join('text').attr('x', d => x(d.day)).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--muted)').text(d => day(d.day));
+  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(ref)).attr('y2', y(ref)).attr('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
+  svg.append('text').attr('x', W - m.r + 6).attr('y', y(ref) + 4).attr('fill', 'var(--muted)').text(`$CARDS ${F.mult(ref)}`);
+  svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--accent)').attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(d.cap_to_revenue)));
+  const last = rows[rows.length - 1];
+  let ly = y(last.cap_to_revenue) + 4; if (Math.abs(ly - y(ref) - 4) < 14) ly = y(ref) + 20;
+  svg.append('text').attr('x', W - m.r + 6).attr('y', ly).attr('fill', 'var(--accent)').text(`$BREAK ${F.mult(last.cap_to_revenue)}`);
+  const tip = tipFor(box);
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(d.cap_to_revenue)).attr('r', 4).attr('fill', 'var(--accent)')
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), `${F.mult(d.cap_to_revenue)} (5-day net ${F.usd(d.net_5d)}/day)`); })
+    .on('mouseleave', () => tip.hide());
+}
+
+function drawDaily(rows) {
+  const box = document.getElementById('daily'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const W = Math.max(box.clientWidth, 300), H = 300, l = 52, r = 8, vTop = 20, vBot = 160, rTop = 190, rBot = 268;
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px');
+  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(0.25);
+  const bw = Math.min(x.bandwidth(), 32), off = (x.bandwidth() - bw) / 2;
+  const yv = d3.scaleLinear([0, d3.max(rows, d => d.volume)], [vBot, vTop]).nice();
+  const yr = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [rBot, rTop]).nice();
+  [yv, yr].forEach(y => {
+    svg.append('g').selectAll('line').data(y.ticks(3)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
+    svg.append('g').selectAll('text').data(y.ticks(3)).join('text').attr('x', l - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--muted)').text(d => d === 0 ? '$0' : F.usd(d));
+  });
+  svg.append('text').attr('x', l).attr('y', vTop - 6).attr('fill', 'var(--muted)').text('Volume');
+  svg.append('text').attr('x', l).attr('y', rTop - 6).attr('fill', 'var(--muted)').text('Net revenue');
+  const launch = '2026-10-16';
+  if (x(launch) !== undefined) {
+    const lx = x(launch) - x.step() * x.padding() / 2;
+    svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
+    svg.append('text').attr('x', lx + 6).attr('y', vTop + 10).attr('fill', 'var(--muted)').text('$BREAK trading starts');
+  }
+  const tip = tipFor(box);
+  const over = (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ' (so far)' : ''), `Volume ${F.usd(d.volume)} · net revenue ${F.usd(d.revenue)}`); };
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume)).attr('rx', 4).attr('fill', 'var(--grey)').attr('opacity', d => d.partial ? 0.45 : 1).on('mousemove', over).on('mouseleave', () => tip.hide());
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue)).attr('rx', 4).attr('fill', 'var(--accent)').attr('opacity', d => d.partial ? 0.45 : 1).on('mousemove', over).on('mouseleave', () => tip.hide());
+  [vBot, rBot].forEach(yy => svg.append('line').attr('x1', l).attr('x2', W - r).attr('y1', yy).attr('y2', yy).attr('stroke', 'var(--ref)'));
+  const step = W < 520 ? 3 : 1;
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0)).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', H - 10).attr('text-anchor', 'middle').attr('fill', 'var(--muted)').text(d => day(d.day));
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/data', { cache: 'no-store' });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
+    DATA = j; render();
+  } catch (e) {
+    if (!DATA) { const t = document.getElementById('take'); t.replaceChildren(el('span', 'err', `Couldn't load live data: ${e.message}`)); }
+  }
+}
+load();
+setInterval(load, 5 * 60 * 1000);
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+</script>
+</body>
+</html>
