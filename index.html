@@ -5,98 +5,217 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Grail Break Ratio Tracker</title>
 <meta name="description" content="Live valuation ratios for Grail Break ($BREAK) against Collector Crypt ($CARDS).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
 :root {
-  --bg: #faf9f5; --panel: #ffffff; --line: #e6e3da; --fg: #1f1e1b; --muted: #6b6a65;
-  --accent: #2c6fd6; --grey: #c2c1b6; --grid: #eeece5; --ref: #8a887f; --bad: #c0453a;
-  --radius: 10px; --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --serif: Georgia, "Times New Roman", serif;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --bg: #1d1c1a; --panel: #262523; --line: #3a3935; --fg: #f0eee8; --muted: #a3a19a; --accent: #5b93ea; --grey: #5c5b56; --grid: #302f2c; --ref: #8f8d85; }
+  --night: #131735;
+  --vault: #1b2050;
+  --rail: #2d3470;
+  --ink: #eef0ff;
+  --haze: #9ea5d6;
+  --label-red: #e2373f;
+  --cyan: #7fe3f0;
+  --violet: #b69cff;
+  --gold: #f2c66d;
+  --volume: #4a528f;
+  --holo: linear-gradient(115deg, var(--cyan) 0%, var(--violet) 45%, var(--gold) 100%);
+  --display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --text: "Instrument Sans", system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); }
-.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 20px; }
-h1 { font-family: var(--serif); font-weight: 400; font-size: 2rem; margin: 0; }
-.take { color: var(--muted); margin: 6px 0 0; max-width: 46rem; line-height: 1.5; }
-.take b { color: var(--fg); font-weight: 600; }
-.stamp { color: var(--muted); font-size: .8rem; margin-top: 6px; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: 12px; }
-.tile, .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
-.tile .l { font-size: .78rem; color: var(--muted); }
-.tile .n { font-family: var(--serif); font-size: 1.7rem; margin: 6px 0; font-variant-numeric: tabular-nums; }
-.tile .s { font-size: .78rem; color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 12px; }
-.wide { grid-column: 1 / -1; }
-.card h2 { font-size: 1rem; font-weight: 600; margin: 0; }
-.note { font-size: .78rem; color: var(--muted); margin: 4px 0 14px; }
-.chart { position: relative; min-height: 260px; }
-.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 18px; }
-.pt { font-size: .9rem; font-weight: 600; }
-.pc { font-size: .78rem; color: var(--muted); margin-bottom: 8px; }
-.bar { display: grid; grid-template-columns: 4.2rem 1fr; align-items: center; gap: 8px; margin: 6px 0; font-size: .8rem; }
-.bar .nm { color: var(--muted); }
-.track { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.fill { height: 20px; border-radius: 4px; flex: none; }
-.v { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: .8rem; font-variant-numeric: tabular-nums; }
-th { color: var(--muted); font-weight: 600; text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); }
-td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+html { background: var(--night); }
+body { margin: 0; color: var(--ink); font-family: var(--text); font-size: 16px; line-height: 1.5;
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(182,156,255,.16), transparent 60%),
+    radial-gradient(50rem 30rem at -10% 30%, rgba(127,227,240,.08), transparent 60%),
+    var(--night); min-height: 100vh; }
+a { color: var(--cyan); }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+.page { width: min(100%, 96rem); margin: 0 auto; padding: 28px clamp(16px, 4vw, 56px) 56px; }
+
+/* header */
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: clamp(24px, 4vw, 48px); }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: .01em; }
+.brand span { color: var(--haze); font-weight: 500; }
+.live { display: flex; align-items: center; gap: 8px; color: var(--haze); font-size: .875rem; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(127,227,240,.6); }
+.live.on i { animation: pulse 2.4s ease-out infinite; }
+.live.bad i { background: var(--label-red); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(127,227,240,.55); } 80%, 100% { box-shadow: 0 0 0 10px rgba(127,227,240,0); } }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 80px); align-items: center; }
+.slabs { display: flex; align-items: flex-end; gap: clamp(14px, 2.5vw, 28px); perspective: 1200px; }
+.slab { position: relative; flex: none; border-radius: 18px; padding: 12px; background: linear-gradient(160deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); border: 1px solid rgba(255,255,255,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 30px 60px -20px rgba(0,0,0,.55); transform-style: preserve-3d; transition: transform .25s ease-out; }
+.slab.main { width: clamp(220px, 26vw, 340px); }
+.slab.ref { width: clamp(150px, 16vw, 210px); opacity: .9; }
+.label { background: #f6f5f0; color: #1a1a1a; border-radius: 8px; padding: 8px 12px; display: grid; grid-template-columns: 1fr auto; align-items: center; border-top: 5px solid var(--label-red); }
+.label .who { font-family: var(--display); font-weight: 700; font-size: 1.05rem; line-height: 1.1; }
+.label .what { font-size: .72rem; color: #5a5a5a; }
+.label .grade { font-family: var(--display); font-weight: 900; font-size: 1.9rem; line-height: 1; text-align: right; }
+.slab.ref .label { grid-template-columns: 1fr; gap: 6px; }
+.slab.ref .label .grade { font-size: 1.4rem; text-align: left; }
+.slab.ref .label .gname { text-align: left; }
+.label .gname { font-size: .65rem; color: #5a5a5a; text-align: right; }
+.card { margin-top: 10px; border-radius: 10px; aspect-ratio: 5 / 7; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; }
+.slab.main .card { background: var(--holo); }
+.slab.ref .card { background: linear-gradient(160deg, #3a4180, #262b5c); }
+.card::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(125deg, rgba(255,255,255,.0) 0 14px, rgba(255,255,255,.14) 14px 16px); mix-blend-mode: overlay; }
+.slab.main .card::after { content: ""; position: absolute; inset: -40%; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.75) 50%, transparent 60%); transform: translateX(-70%); }
+.slab.main.shine .card::after { animation: sweep 1.6s .3s ease-in-out 1 both; }
+@keyframes sweep { to { transform: translateX(70%); } }
+.card .big { position: relative; font-family: var(--display); font-weight: 900; font-size: clamp(4.2rem, 9vw, 7.5rem); line-height: .85; color: var(--night); }
+.slab.ref .card .big { font-size: clamp(2.6rem, 5vw, 4rem); color: var(--ink); }
+.card .cap { position: relative; font-size: .85rem; font-weight: 600; color: rgba(19,23,53,.75); margin-top: 6px; }
+.slab.ref .card .cap { color: var(--haze); font-weight: 500; }
+
+.pitch h1 { font-family: var(--display); font-weight: 900; font-size: clamp(3rem, 7vw, 6.4rem); line-height: .9; margin: 0 0 18px; letter-spacing: -.01em; }
+.pitch h1 .x { background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pitch p { color: var(--haze); font-size: 1.125rem; max-width: 34rem; margin: 0 0 24px; }
+.pitch p b { color: var(--ink); font-weight: 600; }
+.tags { display: flex; flex-wrap: wrap; gap: 10px; }
+.tag { border: 1px solid var(--rail); border-radius: 999px; padding: 6px 14px; font-size: .875rem; color: var(--haze); }
+.tag b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* stat rail */
+.rail { margin: clamp(36px, 6vw, 72px) 0 clamp(28px, 4vw, 48px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--rail); border-bottom: 1px solid var(--rail); }
+.stat { padding: 20px 20px 18px; border-left: 1px solid var(--rail); }
+.stat:first-child { border-left: 0; padding-left: 0; }
+.stat .n { font-family: var(--display); font-weight: 700; font-size: clamp(2rem, 3.4vw, 2.9rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.stat .l { color: var(--haze); font-size: .875rem; margin-top: 8px; }
+.stat .vs { font-size: .8rem; color: var(--haze); margin-top: 2px; }
+.stat .vs b { color: var(--ink); font-weight: 500; }
+
+/* sections */
+.panel { background: rgba(27,32,80,.55); border: 1px solid var(--rail); border-radius: 22px; padding: clamp(18px, 2.5vw, 30px); min-width: 0; }
+.panel h2 { font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.05; margin: 0; }
+.panel .sub { color: var(--haze); font-size: .875rem; margin: 6px 0 18px; max-width: 60ch; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+.chart { position: relative; }
+#daily { min-height: 420px; }
+#trail { min-height: 320px; }
+
+.versus { display: grid; gap: 22px; }
+.vrow .t { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; }
+.vrow .t span:last-child { color: var(--haze); }
+.vbars { display: grid; gap: 6px; margin-top: 8px; }
+.vbar { display: grid; grid-template-columns: 4.5rem 1fr; align-items: center; gap: 10px; font-size: .8rem; color: var(--haze); }
+.vtrack { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.vfill { height: 16px; border-radius: 999px; flex: none; transform-origin: left; }
+.vfill.b { background: var(--holo); }
+.vfill.c { background: var(--volume); }
+.vval { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.tagsrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ptag { position: relative; border-radius: 16px; padding: 18px 18px 16px; background: var(--vault); border: 1px solid var(--rail); overflow: hidden; }
+.ptag.hot { border-color: transparent; background: linear-gradient(var(--vault), var(--vault)) padding-box, var(--holo) border-box; border: 1.5px solid transparent; }
+.ptag .w { color: var(--haze); font-size: .85rem; }
+.ptag .p { font-family: var(--display); font-weight: 900; font-size: clamp(2rem, 3.2vw, 2.8rem); line-height: 1; margin: 10px 0 6px; font-variant-numeric: tabular-nums; }
+.ptag .u { font-size: .85rem; color: var(--haze); }
+.ptag .u b { color: var(--ink); font-weight: 600; }
+
+.mix { display: flex; height: 44px; border-radius: 12px; overflow: hidden; margin: 8px 0 14px; }
+.mix div { height: 100%; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 8px 18px; font-size: .85rem; }
+.legend div { display: flex; gap: 8px; align-items: baseline; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; transform: translateY(1px); }
+.legend span { color: var(--haze); }
+.legend b { font-weight: 500; font-variant-numeric: tabular-nums; margin-left: auto; }
+
+.tablewrap { overflow-x: auto; margin-top: 20px; }
+table { width: 100%; border-collapse: collapse; font-size: .875rem; font-variant-numeric: tabular-nums; }
+th { text-align: right; color: var(--haze); font-weight: 500; padding: 10px 12px; border-bottom: 1px solid var(--rail); white-space: nowrap; }
+td { text-align: right; padding: 12px; border-bottom: 1px solid rgba(45,52,112,.6); white-space: nowrap; }
 th:first-child, td:first-child { text-align: left; }
-.tip { position: absolute; display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 6px 10px; font-size: .78rem; pointer-events: none; white-space: nowrap; z-index: 2; }
-.tip .d { color: var(--muted); }
-.err { color: var(--bad); font-size: .85rem; }
-footer { color: var(--muted); font-size: .78rem; line-height: 1.5; }
+tr.cards td { color: var(--haze); }
+
+.tip { position: absolute; display: none; pointer-events: none; z-index: 5; background: #0f1230; border: 1px solid var(--rail); border-radius: 10px; padding: 8px 12px; font-size: .8rem; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.tip .d { color: var(--haze); }
+
+.err { color: #ff9a9e; }
+footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
 footer p { margin: 0 0 6px; }
+
+@media (max-width: 960px) {
+  .hero { grid-template-columns: 1fr; }
+  .pitch { order: -1; }
+  .rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--rail); }
+  .stat:nth-child(-n+2) { border-top: 0; }
+  .pair, .tagsrow { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live.on i, .slab.main.shine .card::after { animation: none; }
+  .slab { transition: none; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Grail Break ratio tracker</h1>
-    <p class="take" id="take">Loading live data…</p>
-    <div class="stamp" id="stamp"></div>
+<div class="page">
+  <header class="top">
+    <div class="brand">Grail Break <span>ratio tracker</span></div>
+    <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
   </header>
 
-  <section class="tiles" id="tiles"></section>
-
-  <section class="grid">
-    <div class="card wide">
-      <h2>$CARDS vs $BREAK at a glance</h2>
-      <p class="note">$CARDS over 30 days; $BREAK over its last 5 full days. Each panel has its own scale.</p>
-      <div class="cmp" id="cmp"></div>
+  <section class="hero" aria-label="Valuation summary">
+    <div class="slabs" id="slabs">
+      <div class="slab main" id="slab-break">
+        <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 5 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">cap / revenue</div></div></div>
+        <div class="card"><div class="big" id="big-break">–</div><div class="cap">Market cap per $1 of annual net revenue</div></div>
+      </div>
+      <div class="slab ref">
+        <div class="label"><div><div class="who">Collector Crypt</div><div class="what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">cap / revenue</div></div></div>
+        <div class="card"><div class="big" id="big-cards">–</div><div class="cap">The benchmark</div></div>
+      </div>
     </div>
-    <div class="card">
-      <h2>Revenue multiple, trailing 5 days</h2>
-      <p class="note">Current market cap divided by each day's trailing 5-day net revenue, annualized. Dashed line: $CARDS.</p>
-      <div class="chart" id="trail"></div>
-    </div>
-    <div class="card">
-      <h2>Implied value at the $CARDS multiple</h2>
-      <p class="note">Annualized net revenue for each window, valued at $CARDS's market cap / revenue multiple.</p>
-      <div class="scroll"><table><thead><tr><th>Revenue window</th><th>Net / day</th><th>Implied cap</th><th>Implied price</th><th>vs today</th></tr></thead><tbody id="implied"></tbody></table></div>
-    </div>
-    <div class="card wide">
-      <h2>Daily volume and net revenue</h2>
-      <p class="note">Eastern-time days since launch; the faded bar is today so far.</p>
-      <div class="chart" id="daily" style="min-height:300px"></div>
-    </div>
-    <div class="card">
-      <h2>Ratios by window</h2>
-      <p class="note">Averages per day; Grail Break windows leave out today's partial day.</p>
-      <div class="scroll"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Cap / annual rev.</th></tr></thead><tbody id="ratios"></tbody></table></div>
-    </div>
-    <div class="card">
-      <h2>Volume by product, since launch</h2>
-      <p class="note">Sell-backs are cards sold back for USDC, so about half of volume flows back out.</p>
-      <div id="prod"></div>
+    <div class="pitch">
+      <h1><span class="x" id="h-x">–</span> cheaper per dollar of revenue</h1>
+      <p id="pitch">Fetching Grail Break's platform numbers, DexScreener prices and DefiLlama data.</p>
+      <div class="tags" id="tags"></div>
     </div>
   </section>
 
+  <section class="rail" id="rail" aria-label="Key ratios"></section>
+
+  <section class="panel" aria-labelledby="h-daily">
+    <h2 id="h-daily">Volume and net revenue, day by day</h2>
+    <p class="sub">Eastern-time days since launch. Revenue jumped when $BREAK began trading on Oct 16; the faded bars are today so far.</p>
+    <div class="chart" id="daily"></div>
+  </section>
+
+  <div class="pair">
+    <section class="panel" aria-labelledby="h-trail">
+      <h2 id="h-trail">The multiple keeps falling</h2>
+      <p class="sub">Current market cap divided by each day's trailing 5-day net revenue, annualized, against $CARDS.</p>
+      <div class="chart" id="trail"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-vs">
+      <h2 id="h-vs">$BREAK against $CARDS</h2>
+      <p class="sub">$BREAK's last 5 full days against Collector Crypt's last 30. Each pair has its own scale.</p>
+      <div class="versus" id="versus"></div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:20px" aria-labelledby="h-implied">
+    <h2 id="h-implied">What $BREAK would be worth at the $CARDS multiple</h2>
+    <p class="sub">Each window's annualized net revenue, valued at the multiple $CARDS trades at today.</p>
+    <div class="tagsrow" id="ptags"></div>
+    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Cap / annual revenue</th></tr></thead><tbody id="ratios"></tbody></table></div>
+  </section>
+
+  <section class="panel" style="margin-top:20px" aria-labelledby="h-mix">
+    <h2 id="h-mix">Where the volume comes from</h2>
+    <p class="sub">Since launch. Sell-backs are cards sold back for USDC, so about half of volume is money flowing back out.</p>
+    <div class="mix" id="mix"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
   <footer>
-    <p>Data: Grail Break's platform numbers (volume, net revenue), DexScreener (prices, market caps), DefiLlama (Collector Crypt 30-day pack sales and revenue). Refreshes every 5 minutes. Net revenue includes $BREAK trading fees claimed by Grail Break, not only product fees.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -113,15 +232,29 @@ const F = {
 };
 const day = d => d3.utcFormat('%b %-d')(new Date(d));
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
-let DATA = null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let DATA = null, first = true;
+
+function countUp(node, to, fmt) {
+  if (reduce || !first) { node.textContent = fmt(to); return; }
+  const from = to * 6, t0 = performance.now(), dur = 1400;
+  const tick = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3); node.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
 
 function tipFor(box) {
   let t = box.querySelector(':scope > .tip');
   if (!t) { t = el('div', 'tip'); box.appendChild(t); }
   return {
-    show(x, y, head, line) { t.replaceChildren(el('div', 'd', head), el('div', '', line)); t.style.display = 'block'; t.style.left = Math.max(0, Math.min(x + 12, box.clientWidth - t.offsetWidth)) + 'px'; t.style.top = Math.max(0, y - 44) + 'px'; },
+    show(x, y, head, lines) { t.replaceChildren(el('div', 'd', head), ...lines.map(l => el('div', '', l))); t.style.display = 'block'; t.style.left = Math.max(0, Math.min(x + 14, box.clientWidth - t.offsetWidth)) + 'px'; t.style.top = Math.max(0, y - 56) + 'px'; },
     hide() { t.style.display = 'none'; }
   };
+}
+
+function holoDefs(svg, id, vertical) {
+  const g = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('y1', vertical ? 1 : 0).attr('x2', vertical ? 0 : 1).attr('y2', 0);
+  [['0%', css('--cyan')], ['50%', css('--violet')], ['100%', css('--gold')]].forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c));
 }
 
 function render() {
@@ -130,115 +263,171 @@ function render() {
   const I = Object.fromEntries(D.implied.map(r => [r.key, r]));
   const c = R.cards_30d, b = R.break_5d;
 
-  const take = document.getElementById('take'); take.replaceChildren();
-  take.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK trades at ', el('b', '', F.mult(b.cap_to_revenue)),
-    ' its last-5-day net revenue run rate, against ', el('b', '', F.mult(c.cap_to_revenue)), ' for $CARDS: ', el('b', '', F.times(b.discount_vs_cards)), ' cheaper per dollar of revenue.');
-  document.getElementById('stamp').textContent = `Updated ${new Date(D.updated).toLocaleString()}` + (D.errors && D.errors.length ? ` · some sources failed: ${D.errors.join('; ')}` : '');
+  countUp(document.getElementById('big-break'), b.cap_to_revenue, F.mult);
+  document.getElementById('g-break').textContent = F.mult(b.cap_to_revenue);
+  document.getElementById('big-cards').textContent = F.mult(c.cap_to_revenue);
+  document.getElementById('g-cards').textContent = F.mult(c.cap_to_revenue);
+  countUp(document.getElementById('h-x'), b.discount_vs_cards, F.times);
+  if (first && !reduce) document.getElementById('slab-break').classList.add('shine');
 
-  const tiles = [
-    ['Market cap', F.usd(b.market_cap), `Price ${F.price(D.breakPrice)}`],
-    ['Net revenue per day', F.usd(b.net_day), 'Last 5 full days'],
-    ['Market cap / annual revenue', F.mult(b.cap_to_revenue), `$CARDS ${F.mult(c.cap_to_revenue)}`],
-    ['Daily net revenue / cap', F.pct(b.net_to_cap), `$CARDS ${F.pct(c.net_to_cap)}`],
-    ['Daily volume / cap', F.pct(b.gross_to_cap), `$CARDS ${F.pct(c.gross_to_cap)}`],
-    ['Implied price at $CARDS multiple', F.price(I.break_5d.implied_price), `${F.times(I.break_5d.upside)} today's price`]
-  ];
-  document.getElementById('tiles').replaceChildren(...tiles.map(([l, n, s]) => { const t = el('div', 'tile'); t.append(el('div', 'l', l), el('div', 'n', n), el('div', 's', s)); return t; }));
+  const pitch = document.getElementById('pitch'); pitch.replaceChildren();
+  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK is valued at ', el('b', '', F.mult(b.cap_to_revenue)),
+    ' its annualized net revenue from the last five days. Collector Crypt, the platform it runs on, trades at ', el('b', '', F.mult(c.cap_to_revenue)), '.');
+  const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
+  document.getElementById('tags').replaceChildren(
+    tag('Price', F.price(D.breakPrice)),
+    tag('Implied at $CARDS multiple', F.price(I.break_5d.implied_price)),
+    tag('Liquidity', D.liquidity ? F.usd(D.liquidity) : '–'));
 
-  const panels = [
-    ['gross_to_cap', 'Daily volume / market cap', F.pct, (a, z) => `$BREAK ${F.times(z / a)} higher`],
-    ['net_to_cap', 'Daily net revenue / market cap', F.pct, (a, z) => `$BREAK ${F.times(z / a)} higher`],
-    ['margin', 'Net margin (net / volume)', F.pct, (a, z) => `$BREAK ${F.times(a / z)} lower`],
-    ['cap_to_revenue', 'Market cap / annual revenue', F.mult, (a, z) => `$BREAK ${F.times(a / z)} cheaper`]
+  const stats = [
+    [F.usd(b.market_cap), 'Market cap', null],
+    [F.usd(b.net_day), 'Net revenue per day, last 5 days', null],
+    [F.pct(b.net_to_cap), 'Daily net revenue / market cap', F.pct(c.net_to_cap)],
+    [F.pct(b.gross_to_cap), 'Daily volume / market cap', F.pct(c.gross_to_cap)],
+    [F.pct(b.margin), 'Net margin on volume', F.pct(c.margin)]
   ];
-  document.getElementById('cmp').replaceChildren(...panels.map(([f, t, fmt, say]) => {
-    const p = el('div'); p.append(el('div', 'pt', t), el('div', 'pc', say(c[f], b[f])));
-    const mx = Math.max(c[f], b[f]);
-    [[c, '$CARDS', 'var(--grey)'], [b, '$BREAK', 'var(--accent)']].forEach(([r, name, color]) => {
-      const bar = el('div', 'bar'), tr = el('div', 'track'), fill = el('div', 'fill');
-      fill.style.width = `calc((100% - 4rem) * ${Math.max(r[f] / mx, 0.01)})`; fill.style.background = color;
-      tr.append(fill, el('span', 'v', fmt(r[f]))); bar.append(el('span', 'nm', name), tr); p.append(bar);
+  document.getElementById('rail').replaceChildren(...stats.map(([n, l, vs]) => {
+    const s = el('div', 'stat'); s.append(el('div', 'n', n), el('div', 'l', l));
+    if (vs) { const v = el('div', 'vs'); v.append('$CARDS ', el('b', '', vs)); s.append(v); }
+    return s;
+  }));
+
+  const pairs = [
+    ['gross_to_cap', 'Daily volume / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
+    ['net_to_cap', 'Daily net revenue / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
+    ['margin', 'Net margin on volume', F.pct, (a, z) => `${F.times(a / z)} lower`],
+    ['cap_to_revenue', 'Market cap / annual revenue', F.mult, (a, z) => `${F.times(a / z)} cheaper`]
+  ];
+  document.getElementById('versus').replaceChildren(...pairs.map(([f, t, fmt, say]) => {
+    const row = el('div', 'vrow'), head = el('div', 't');
+    head.append(el('span', '', t), el('span', '', '$BREAK ' + say(c[f], b[f])));
+    const bars = el('div', 'vbars'), mx = Math.max(c[f], b[f]);
+    [[b, '$BREAK', 'b'], [c, '$CARDS', 'c']].forEach(([r, name, cls]) => {
+      const bar = el('div', 'vbar'), tr = el('div', 'vtrack'), fill = el('div', 'vfill ' + cls);
+      fill.style.width = `calc((100% - 4.5rem) * ${Math.max(r[f] / mx, 0.015)})`;
+      tr.append(fill, el('span', 'vval', fmt(r[f]))); bar.append(el('span', '', name), tr); bars.append(bar);
     });
-    return p;
+    row.append(head, bars); return row;
   }));
 
-  const rowsTo = (id, rows, cols) => document.getElementById(id).replaceChildren(...rows.map(r => { const tr = el('tr'); cols.forEach(([k, f]) => tr.append(el('td', '', f ? f(r[k]) : r[k]))); return tr; }));
-  rowsTo('implied', D.implied, [['label'], ['net_day', F.usd], ['implied_cap', F.usd], ['implied_price', F.price], ['upside', F.times]]);
-  rowsTo('ratios', D.ratios, [['label'], ['gross_day', F.usd], ['net_day', F.usd], ['margin', F.pct], ['net_to_cap', F.pct], ['cap_to_revenue', F.mult]]);
-
-  const prods = [...D.products].sort((a, z) => z.volume - a.volume), pm = d3.max(prods, d => d.volume);
-  document.getElementById('prod').replaceChildren(...prods.map(d => {
-    const bar = el('div', 'bar'), tr = el('div', 'track'), fill = el('div', 'fill');
-    bar.style.gridTemplateColumns = '7rem 1fr';
-    fill.style.width = `calc((100% - 7rem) * ${Math.max(d.volume / pm, 0.01)})`;
-    fill.style.background = d.product === 'Card sell-backs' ? 'var(--grey)' : 'var(--accent)';
-    tr.append(fill, el('span', 'v', `${F.usd(d.volume)} · ${F.int(d.count)}`)); bar.append(el('span', 'nm', d.product), tr); return bar;
+  const order = ['break_5d', 'break_1d', 'break_launch'];
+  const names = { break_5d: 'Last 5 days', break_1d: 'Last full day', break_launch: 'Since launch' };
+  document.getElementById('ptags').replaceChildren(...order.filter(k => I[k]).map(k => {
+    const r = I[k], t = el('div', 'ptag' + (k === 'break_5d' ? ' hot' : ''));
+    const u = el('div', 'u'); u.append(el('b', '', F.times(r.upside)), ` today's price, ${F.usd(r.implied_cap)} market cap`);
+    t.append(el('div', 'w', `${names[k]}: ${F.usd(r.net_day)} net a day`), el('div', 'p', F.price(r.implied_price)), u);
+    return t;
+  }));
+  document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {
+    const tr = el('tr', r.key === 'cards_30d' ? 'cards' : '');
+    [r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.mult(r.cap_to_revenue)].forEach(v => tr.append(el('td', '', v)));
+    return tr;
   }));
 
-  drawTrailing(D.trailing, c.cap_to_revenue);
+  const prods = [...D.products].sort((a, z) => z.volume - a.volume), tot = d3.sum(prods, d => d.volume);
+  const pc = p => p.product === 'Card sell-backs' ? css('--volume') : null;
+  const holoScale = d3.scaleLinear([0, 0.5, 1], [css('--cyan'), css('--violet'), css('--gold')]);
+  const others = prods.filter(p => !pc(p));
+  const colorOf = p => pc(p) || holoScale(others.length > 1 ? others.indexOf(p) / (others.length - 1) : 0);
+  document.getElementById('mix').replaceChildren(...prods.map(p => { const d = el('div'); d.style.width = (p.volume / tot * 100) + '%'; d.style.background = colorOf(p); d.title = `${p.product}: ${F.usd(p.volume)}`; return d; }));
+  document.getElementById('legend').replaceChildren(...prods.map(p => { const d = el('div'), i = el('i'); i.style.background = colorOf(p); d.append(i, el('span', '', p.product), el('b', '', `${F.usd(p.volume)} (${d3.format('.0%')(p.volume / tot)})`)); return d; }));
+
   drawDaily(D.daily);
+  drawTrailing(D.trailing, c.cap_to_revenue);
+  first = false;
+}
+
+function drawDaily(rows) {
+  const box = document.getElementById('daily'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const W = Math.max(box.clientWidth, 300), H = 420, l = 56, r = 10, vTop = 26, vBot = 250, rTop = 290, rBot = 386;
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px').style('font-family', 'var(--text)');
+  holoDefs(svg, 'holo-v', true);
+  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(0.22);
+  const bw = Math.min(x.bandwidth(), 44), off = (x.bandwidth() - bw) / 2;
+  const yv = d3.scaleLinear([0, d3.max(rows, d => d.volume)], [vBot, vTop]).nice();
+  const yr = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [rBot, rTop]).nice();
+  [[yv, 4], [yr, 2]].forEach(([y, n]) => {
+    svg.append('g').selectAll('line').data(y.ticks(n)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+    svg.append('g').selectAll('text').data(y.ticks(n)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
+  });
+  svg.append('text').attr('x', l).attr('y', vTop - 10).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Volume');
+  svg.append('text').attr('x', l).attr('y', rTop - 10).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Net revenue');
+  const launch = '2026-10-16';
+  if (x(launch) !== undefined) {
+    const lx = x(launch) - x.step() * x.padding() / 2;
+    svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--haze)').attr('stroke-opacity', .5).attr('stroke-dasharray', '4 4');
+    svg.append('text').attr('x', lx + 8).attr('y', rTop - 10).attr('fill', 'var(--haze)').text('$BREAK starts trading');
+  }
+  const tip = tipFor(box);
+  const over = (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), [`Volume ${F.usd(d.volume)}`, `Net revenue ${F.usd(d.revenue)}`]); };
+  const vb = svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 6).attr('fill', 'var(--volume)').attr('opacity', d => d.partial ? .45 : 1);
+  const rb = svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 6).attr('fill', 'url(#holo-v)').attr('opacity', d => d.partial ? .45 : 1);
+  const peak = rows.reduce((a, d) => d.volume > a.volume ? d : a, rows[0]);
+  svg.append('text').attr('x', x(peak.day) + x.bandwidth() / 2).attr('y', yv(peak.volume) - 8).attr('text-anchor', 'middle').attr('fill', 'var(--ink)').attr('font-weight', 600).text(F.usd(peak.volume));
+  if (first && !reduce) {
+    vb.attr('y', vBot).attr('height', 0).transition().duration(900).delay((d, i) => 300 + i * 40).ease(d3.easeCubicOut).attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume));
+    rb.attr('y', rBot).attr('height', 0).transition().duration(900).delay((d, i) => 500 + i * 40).ease(d3.easeCubicOut).attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue));
+  } else {
+    vb.attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume));
+    rb.attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue));
+  }
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', vTop).attr('height', rBot - vTop).attr('fill', 'transparent')
+    .on('mousemove', over).on('mouseleave', () => tip.hide());
+  const step = W < 560 ? 3 : 1;
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0)).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', H - 12).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => day(d.day));
 }
 
 function drawTrailing(rows, ref) {
   const box = document.getElementById('trail'); box.querySelectorAll('svg').forEach(s => s.remove());
   if (!rows.length) return;
-  const W = Math.max(box.clientWidth, 280), H = 260, m = { l: 44, r: 92, t: 16, b: 28 };
-  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px');
-  const x = d3.scalePoint(rows.map(r => r.day), [m.l, W - m.r]).padding(0.3);
+  const W = Math.max(box.clientWidth, 280), H = 320, m = { l: 44, r: 96, t: 20, b: 32 };
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px').style('font-family', 'var(--text)');
+  holoDefs(svg, 'holo-h', false);
+  const x = d3.scalePoint(rows.map(r => r.day), [m.l, W - m.r]).padding(0.2);
   const y = d3.scaleLinear([0, d3.max([ref, ...rows.map(r => r.cap_to_revenue)]) * 1.1], [H - m.b, m.t]).nice();
-  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
-  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--muted)').text(d => d3.format('.1f')(d) + 'x');
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d3.format('.1f')(d) + 'x');
   const step = W < 420 ? 2 : 1;
-  svg.append('g').selectAll('text').data(rows.filter((r, i) => i % step === 0)).join('text').attr('x', d => x(d.day)).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--muted)').text(d => day(d.day));
-  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(ref)).attr('y2', y(ref)).attr('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
-  svg.append('text').attr('x', W - m.r + 6).attr('y', y(ref) + 4).attr('fill', 'var(--muted)').text(`$CARDS ${F.mult(ref)}`);
-  svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'var(--accent)').attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(d.cap_to_revenue)));
+  svg.append('g').selectAll('text').data(rows.filter((r, i) => i % step === 0)).join('text').attr('x', d => x(d.day)).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => day(d.day));
+  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(ref)).attr('y2', y(ref)).attr('stroke', 'var(--haze)').attr('stroke-dasharray', '4 4');
+  svg.append('text').attr('x', W - m.r + 8).attr('y', y(ref) + 4).attr('fill', 'var(--haze)').text(`$CARDS ${F.mult(ref)}`);
+  const area = d3.area(d => x(d.day), H - m.b, d => y(d.cap_to_revenue));
+  const g = svg.append('defs').append('linearGradient').attr('id', 'fade').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
+  g.append('stop').attr('offset', '0%').attr('stop-color', css('--violet')).attr('stop-opacity', .35);
+  g.append('stop').attr('offset', '100%').attr('stop-color', css('--violet')).attr('stop-opacity', 0);
+  svg.append('path').datum(rows).attr('fill', 'url(#fade)').attr('d', area);
+  const path = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#holo-h)').attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(d.cap_to_revenue)));
+  if (first && !reduce) { const L = path.node().getTotalLength(); path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(400).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
   const last = rows[rows.length - 1];
-  let ly = y(last.cap_to_revenue) + 4; if (Math.abs(ly - y(ref) - 4) < 14) ly = y(ref) + 20;
-  svg.append('text').attr('x', W - m.r + 6).attr('y', ly).attr('fill', 'var(--accent)').text(`$BREAK ${F.mult(last.cap_to_revenue)}`);
+  let ly = y(last.cap_to_revenue) + 4; if (Math.abs(ly - y(ref) - 4) < 16) ly = y(ref) + 22;
+  svg.append('text').attr('x', W - m.r + 8).attr('y', ly).attr('fill', 'var(--gold)').attr('font-weight', 600).text(`$BREAK ${F.mult(last.cap_to_revenue)}`);
   const tip = tipFor(box);
-  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(d.cap_to_revenue)).attr('r', 4).attr('fill', 'var(--accent)')
-    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), `${F.mult(d.cap_to_revenue)} (5-day net ${F.usd(d.net_5d)}/day)`); })
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(d.cap_to_revenue)).attr('r', 5).attr('fill', 'var(--night)').attr('stroke', 'var(--ink)').attr('stroke-width', 2)
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${F.mult(d.cap_to_revenue)} market cap / revenue`, `5-day net ${F.usd(d.net_5d)} a day`]); })
     .on('mouseleave', () => tip.hide());
 }
 
-function drawDaily(rows) {
-  const box = document.getElementById('daily'); box.querySelectorAll('svg').forEach(s => s.remove());
-  const W = Math.max(box.clientWidth, 300), H = 300, l = 52, r = 8, vTop = 20, vBot = 160, rTop = 190, rBot = 268;
-  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px');
-  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(0.25);
-  const bw = Math.min(x.bandwidth(), 32), off = (x.bandwidth() - bw) / 2;
-  const yv = d3.scaleLinear([0, d3.max(rows, d => d.volume)], [vBot, vTop]).nice();
-  const yr = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [rBot, rTop]).nice();
-  [yv, yr].forEach(y => {
-    svg.append('g').selectAll('line').data(y.ticks(3)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
-    svg.append('g').selectAll('text').data(y.ticks(3)).join('text').attr('x', l - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--muted)').text(d => d === 0 ? '$0' : F.usd(d));
-  });
-  svg.append('text').attr('x', l).attr('y', vTop - 6).attr('fill', 'var(--muted)').text('Volume');
-  svg.append('text').attr('x', l).attr('y', rTop - 6).attr('fill', 'var(--muted)').text('Net revenue');
-  const launch = '2026-10-16';
-  if (x(launch) !== undefined) {
-    const lx = x(launch) - x.step() * x.padding() / 2;
-    svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--ref)').attr('stroke-dasharray', '4 3');
-    svg.append('text').attr('x', lx + 6).attr('y', vTop + 10).attr('fill', 'var(--muted)').text('$BREAK trading starts');
-  }
-  const tip = tipFor(box);
-  const over = (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ' (so far)' : ''), `Volume ${F.usd(d.volume)} · net revenue ${F.usd(d.revenue)}`); };
-  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume)).attr('rx', 4).attr('fill', 'var(--grey)').attr('opacity', d => d.partial ? 0.45 : 1).on('mousemove', over).on('mouseleave', () => tip.hide());
-  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue)).attr('rx', 4).attr('fill', 'var(--accent)').attr('opacity', d => d.partial ? 0.45 : 1).on('mousemove', over).on('mouseleave', () => tip.hide());
-  [vBot, rBot].forEach(yy => svg.append('line').attr('x1', l).attr('x2', W - r).attr('y1', yy).attr('y2', yy).attr('stroke', 'var(--ref)'));
-  const step = W < 520 ? 3 : 1;
-  svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0)).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', H - 10).attr('text-anchor', 'middle').attr('fill', 'var(--muted)').text(d => day(d.day));
+// Gentle tilt on the main slab when pointed at.
+const slab = document.getElementById('slab-break');
+if (!reduce) {
+  slab.addEventListener('pointermove', e => { const r = slab.getBoundingClientRect(), px = (e.clientX - r.left) / r.width - .5, py = (e.clientY - r.top) / r.height - .5; slab.style.transform = `rotateY(${px * 10}deg) rotateX(${-py * 10}deg)`; });
+  slab.addEventListener('pointerleave', () => { slab.style.transform = ''; });
 }
 
 async function load() {
+  const live = document.getElementById('live'), stamp = document.getElementById('stamp');
   try {
     const r = await fetch('/api/data', { cache: 'no-store' });
-    const j = await r.json();
+    const text = await r.text();
+    let j; try { j = JSON.parse(text); } catch { throw new Error(r.status === 404 ? 'the data function at /api/data was not found. Check that api/data.js is deployed.' : `the data function returned an unexpected response (HTTP ${r.status}).`); }
     if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
     DATA = j; render();
+    live.className = 'live on';
+    stamp.textContent = `Live, updated ${new Date(j.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` + (j.errors && j.errors.length ? `. Some sources failed: ${j.errors.join('; ')}` : '');
   } catch (e) {
-    if (!DATA) { const t = document.getElementById('take'); t.replaceChildren(el('span', 'err', `Couldn't load live data: ${e.message}`)); }
+    live.className = 'live bad';
+    stamp.textContent = DATA ? 'Showing the last update; the latest refresh failed' : 'Live data unavailable';
+    if (!DATA) { const p = document.getElementById('pitch'); p.replaceChildren(el('span', 'err', `Couldn't load live data: ${e.message}`)); }
   }
 }
 load();
