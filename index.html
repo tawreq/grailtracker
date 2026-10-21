@@ -68,7 +68,7 @@ a { color: var(--cyan); }
 .slab.main .card::after { content: ""; position: absolute; inset: -40%; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.75) 50%, transparent 60%); transform: translateX(-70%); }
 .slab.main.shine .card::after { animation: sweep 1.6s .3s ease-in-out 1 both; }
 @keyframes sweep { to { transform: translateX(70%); } }
-.card .big { position: relative; font-family: var(--display); font-weight: 900; font-size: clamp(4.2rem, 9vw, 7.5rem); line-height: .85; color: var(--night); }
+.card .big { position: relative; font-family: var(--display); font-weight: 900; font-size: clamp(3.4rem, 7vw, 6.2rem); line-height: .85; color: var(--night); }
 .slab.ref .card .big { font-size: clamp(2.6rem, 5vw, 4rem); color: var(--ink); }
 .card .cap { position: relative; font-size: .85rem; font-weight: 600; color: rgba(19,23,53,.75); margin-top: 6px; }
 .slab.ref .card .cap { color: var(--haze); font-weight: 500; }
@@ -164,16 +164,16 @@ footer p { margin: 0 0 6px; }
   <section class="hero" aria-label="Valuation summary">
     <div class="slabs" id="slabs">
       <div class="slab main" id="slab-break">
-        <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 5 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">cap / revenue</div></div></div>
-        <div class="card"><div class="big" id="big-break">–</div><div class="cap">Market cap per $1 of annual net revenue</div></div>
+        <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 5 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">revenue yield</div></div></div>
+        <div class="card"><div class="big" id="big-break">–</div><div class="cap">A year of net revenue as a share of market cap</div></div>
       </div>
       <div class="slab ref">
-        <div class="label"><div><div class="who">Collector Crypt</div><div class="what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">cap / revenue</div></div></div>
+        <div class="label"><div><div class="who">Collector Crypt</div><div class="what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">revenue yield</div></div></div>
         <div class="card"><div class="big" id="big-cards">–</div><div class="cap">The benchmark</div></div>
       </div>
     </div>
     <div class="pitch">
-      <h1><span class="x" id="h-x">–</span> cheaper per dollar of revenue</h1>
+      <h1><span class="x" id="h-x">–</span> the revenue per dollar of market cap</h1>
       <p id="pitch">Fetching Grail Break's platform numbers, DexScreener prices and DefiLlama data.</p>
       <div class="tags" id="tags"></div>
     </div>
@@ -201,10 +201,10 @@ footer p { margin: 0 0 6px; }
   </div>
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-implied">
-    <h2 id="h-implied">What $BREAK would be worth at the $CARDS multiple</h2>
-    <p class="sub">Each window's annualized net revenue, valued at the multiple $CARDS trades at today.</p>
+    <h2 id="h-implied">What $BREAK would be worth at the $CARDS yield</h2>
+    <p class="sub">The market cap at which each window's annualized net revenue would give $BREAK the same revenue yield as $CARDS today.</p>
     <div class="tagsrow" id="ptags"></div>
-    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Cap / annual revenue</th></tr></thead><tbody id="ratios"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-mix">
@@ -228,8 +228,10 @@ const F = {
   mult: v => d3.format('.2f')(v) + 'x',
   times: v => d3.format('.1f')(v) + 'x',
   price: v => '$' + d3.format('.3~r')(v),
-  int: v => d3.format(',')(v)
+  int: v => d3.format(',')(v),
+  yld: v => d3.format('.0%')(v)
 };
+const yieldOf = r => 1 / r.cap_to_revenue;
 const day = d => d3.utcFormat('%b %-d')(new Date(d));
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -238,7 +240,7 @@ let DATA = null, first = true;
 
 function countUp(node, to, fmt) {
   if (reduce || !first) { node.textContent = fmt(to); return; }
-  const from = to * 6, t0 = performance.now(), dur = 1400;
+  const from = 0, t0 = performance.now(), dur = 1400;
   const tick = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3); node.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
 }
@@ -263,20 +265,20 @@ function render() {
   const I = Object.fromEntries(D.implied.map(r => [r.key, r]));
   const c = R.cards_30d, b = R.break_5d;
 
-  countUp(document.getElementById('big-break'), b.cap_to_revenue, F.mult);
-  document.getElementById('g-break').textContent = F.mult(b.cap_to_revenue);
-  document.getElementById('big-cards').textContent = F.mult(c.cap_to_revenue);
-  document.getElementById('g-cards').textContent = F.mult(c.cap_to_revenue);
+  countUp(document.getElementById('big-break'), yieldOf(b), F.yld);
+  document.getElementById('g-break').textContent = F.yld(yieldOf(b));
+  document.getElementById('big-cards').textContent = F.yld(yieldOf(c));
+  document.getElementById('g-cards').textContent = F.yld(yieldOf(c));
   countUp(document.getElementById('h-x'), b.discount_vs_cards, F.times);
   if (first && !reduce) document.getElementById('slab-break').classList.add('shine');
 
   const pitch = document.getElementById('pitch'); pitch.replaceChildren();
-  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK is valued at ', el('b', '', F.mult(b.cap_to_revenue)),
-    ' its annualized net revenue from the last five days. Collector Crypt, the platform it runs on, trades at ', el('b', '', F.mult(c.cap_to_revenue)), '.');
+  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, a year of $BREAK\'s net revenue at its last-five-day pace would equal ', el('b', '', F.yld(yieldOf(b))),
+    ' of its market cap. Collector Crypt, the platform it runs on, earns ', el('b', '', F.yld(yieldOf(c))), '.');
   const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
   document.getElementById('tags').replaceChildren(
     tag('Price', F.price(D.breakPrice)),
-    tag('Implied at $CARDS multiple', F.price(I.break_5d.implied_price)),
+    tag('Implied at $CARDS yield', F.price(I.break_5d.implied_price)),
     tag('Liquidity', D.liquidity ? F.usd(D.liquidity) : '–'));
 
   const stats = [
@@ -296,8 +298,9 @@ function render() {
     ['gross_to_cap', 'Daily volume / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
     ['net_to_cap', 'Daily net revenue / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
     ['margin', 'Net margin on volume', F.pct, (a, z) => `${F.times(a / z)} lower`],
-    ['cap_to_revenue', 'Market cap / annual revenue', F.mult, (a, z) => `${F.times(a / z)} cheaper`]
+    ['revenue_yield', 'Revenue yield (annual net revenue / market cap)', F.yld, (a, z) => `${F.times(z / a)} higher`]
   ];
+  [b, c].forEach(r => { r.revenue_yield = yieldOf(r); });
   document.getElementById('versus').replaceChildren(...pairs.map(([f, t, fmt, say]) => {
     const row = el('div', 'vrow'), head = el('div', 't');
     head.append(el('span', '', t), el('span', '', '$BREAK ' + say(c[f], b[f])));
@@ -320,7 +323,7 @@ function render() {
   }));
   document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {
     const tr = el('tr', r.key === 'cards_30d' ? 'cards' : '');
-    [r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.mult(r.cap_to_revenue)].forEach(v => tr.append(el('td', '', v)));
+    [r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
     return tr;
   }));
 
