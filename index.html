@@ -189,8 +189,8 @@ footer p { margin: 0 0 6px; }
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-trail">
-      <h2 id="h-trail">The multiple keeps falling</h2>
-      <p class="sub">Current market cap divided by each day's trailing 5-day net revenue, annualized, against $CARDS.</p>
+      <h2 id="h-trail">Revenue yield keeps climbing</h2>
+      <p class="sub">Annualized net revenue from each day's trailing 5 days, as a share of current market cap. Higher means more revenue for every dollar of market cap.</p>
       <div class="chart" id="trail"></div>
     </section>
     <section class="panel" aria-labelledby="h-vs">
@@ -377,33 +377,36 @@ function drawDaily(rows) {
   svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0)).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', H - 12).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => day(d.day));
 }
 
-function drawTrailing(rows, ref) {
+function drawTrailing(rows, refMultiple) {
+  // Revenue yield: annualized net revenue as a share of market cap (the inverse of the multiple), so higher is better.
   const box = document.getElementById('trail'); box.querySelectorAll('svg').forEach(s => s.remove());
   if (!rows.length) return;
-  const W = Math.max(box.clientWidth, 280), H = 320, m = { l: 44, r: 96, t: 20, b: 32 };
+  const yld = d => 1 / d.cap_to_revenue, ref = 1 / refMultiple, pct = d3.format('.0%');
+  const W = Math.max(box.clientWidth, 280), H = 320, m = { l: 52, r: 104, t: 20, b: 32 };
   const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px').style('font-family', 'var(--text)');
   holoDefs(svg, 'holo-h', false);
   const x = d3.scalePoint(rows.map(r => r.day), [m.l, W - m.r]).padding(0.2);
-  const y = d3.scaleLinear([0, d3.max([ref, ...rows.map(r => r.cap_to_revenue)]) * 1.1], [H - m.b, m.t]).nice();
+  const y = d3.scaleLinear([0, d3.max([ref, ...rows.map(yld)]) * 1.1], [H - m.b, m.t]).nice();
   svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
-  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d3.format('.1f')(d) + 'x');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(pct);
   const step = W < 420 ? 2 : 1;
   svg.append('g').selectAll('text').data(rows.filter((r, i) => i % step === 0)).join('text').attr('x', d => x(d.day)).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => day(d.day));
   svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(ref)).attr('y2', y(ref)).attr('stroke', 'var(--haze)').attr('stroke-dasharray', '4 4');
-  svg.append('text').attr('x', W - m.r + 8).attr('y', y(ref) + 4).attr('fill', 'var(--haze)').text(`$CARDS ${F.mult(ref)}`);
-  const area = d3.area(d => x(d.day), H - m.b, d => y(d.cap_to_revenue));
+  const last = rows[rows.length - 1];
+  let ly = y(yld(last)) + 4, ry = y(ref) + 4;
+  if (Math.abs(ly - ry) < 16) { if (yld(last) >= ref) ly = ry - 16; else ly = ry + 16; }
+  svg.append('text').attr('x', W - m.r + 8).attr('y', ry).attr('fill', 'var(--haze)').text(`$CARDS ${pct(ref)}`);
+  const area = d3.area(d => x(d.day), H - m.b, d => y(yld(d)));
   const g = svg.append('defs').append('linearGradient').attr('id', 'fade').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
   g.append('stop').attr('offset', '0%').attr('stop-color', css('--violet')).attr('stop-opacity', .35);
   g.append('stop').attr('offset', '100%').attr('stop-color', css('--violet')).attr('stop-opacity', 0);
   svg.append('path').datum(rows).attr('fill', 'url(#fade)').attr('d', area);
-  const path = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#holo-h)').attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(d.cap_to_revenue)));
+  const path = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#holo-h)').attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(yld(d))));
   if (first && !reduce) { const L = path.node().getTotalLength(); path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(400).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
-  const last = rows[rows.length - 1];
-  let ly = y(last.cap_to_revenue) + 4; if (Math.abs(ly - y(ref) - 4) < 16) ly = y(ref) + 22;
-  svg.append('text').attr('x', W - m.r + 8).attr('y', ly).attr('fill', 'var(--gold)').attr('font-weight', 600).text(`$BREAK ${F.mult(last.cap_to_revenue)}`);
+  svg.append('text').attr('x', W - m.r + 8).attr('y', ly).attr('fill', 'var(--gold)').attr('font-weight', 600).text(`$BREAK ${pct(yld(last))}`);
   const tip = tipFor(box);
-  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(d.cap_to_revenue)).attr('r', 5).attr('fill', 'var(--night)').attr('stroke', 'var(--ink)').attr('stroke-width', 2)
-    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${F.mult(d.cap_to_revenue)} market cap / revenue`, `5-day net ${F.usd(d.net_5d)} a day`]); })
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(yld(d))).attr('r', 5).attr('fill', 'var(--night)').attr('stroke', 'var(--ink)').attr('stroke-width', 2)
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${pct(yld(d))} revenue yield`, `5-day net ${F.usd(d.net_5d)} a day, annualized ${F.usd(d.net_5d * 365)}`]); })
     .on('mouseleave', () => tip.hide());
 }
 
