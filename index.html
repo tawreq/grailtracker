@@ -136,6 +136,59 @@ tr.cards td { color: var(--haze); }
 .tip { position: absolute; display: none; pointer-events: none; z-index: 5; background: #0f1230; border: 1px solid var(--rail); border-radius: 10px; padding: 8px 12px; font-size: .8rem; white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
 .tip .d { color: var(--haze); }
 
+/* platform numbers */
+.band { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin: 0 0 16px; }
+.band h2 { font-family: var(--display); font-weight: 900; font-size: clamp(2rem, 4vw, 3.2rem); line-height: .95; margin: 0; }
+.band h2 .x { background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.band p { color: var(--haze); font-size: .9rem; margin: 0; max-width: 52ch; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpi { position: relative; display: flex; flex-direction: column; border-radius: 18px; padding: 18px 18px 16px; background: var(--vault); border: 1px solid var(--rail); min-width: 0; overflow: hidden; }
+.kpi.hot { background: linear-gradient(var(--vault), var(--vault)) padding-box, var(--holo) border-box; border: 1.5px solid transparent; }
+.kpi .k { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.kpi .n { font-family: var(--display); font-weight: 900; font-size: clamp(2rem, 3vw, 2.7rem); line-height: 1; margin: 10px 0 4px; font-variant-numeric: tabular-nums; }
+.kpi .s { color: var(--haze); font-size: .8rem; }
+.kpi .s b { color: var(--ink); font-weight: 600; }
+.kpi .viz { margin-top: auto; padding-top: 14px; }
+.kpi .ring { position: absolute; top: 14px; right: 14px; }
+.seg { display: flex; height: 12px; border-radius: 999px; overflow: hidden; gap: 2px; }
+.seg div { height: 100%; }
+.segkey { display: flex; justify-content: space-between; gap: 8px; font-size: .72rem; color: var(--haze); margin-top: 6px; }
+.segkey b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.duo { display: grid; gap: 6px; }
+.duo .row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: .72rem; color: var(--haze); }
+.duo .row b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.duo .track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: rgba(158,165,214,.12); overflow: hidden; }
+.duo .track div { height: 100%; border-radius: 999px; }
+#cumul, #burnline { min-height: 340px; }
+.furnace { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
+#gauge { max-width: 380px; margin: 0 auto; }
+.split { display: grid; gap: 14px; margin-top: 12px; }
+.split .lab { display: flex; justify-content: space-between; font-size: .8rem; color: var(--haze); margin-bottom: 6px; }
+.split .seg { height: 22px; border-radius: 8px; }
+.split .seg div { display: flex; align-items: center; padding: 0 8px; font-size: .72rem; font-weight: 600; color: var(--night); white-space: nowrap; overflow: hidden; }
+.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.chip { font: inherit; font-size: .8rem; color: var(--haze); background: transparent; border: 1px solid var(--rail); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.chip[aria-pressed="true"] { color: var(--night); background: var(--ink); border-color: var(--ink); font-weight: 600; }
+.chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+#burnday { min-height: 240px; }
+#ledgerviz { min-height: 220px; }
+.ledger { max-height: 380px; overflow: auto; margin-top: 14px; border-top: 1px solid var(--rail); }
+.ledger th { position: sticky; top: 0; background: #181c47; }
+.ledger td:nth-child(2) span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+.prods { display: grid; gap: 14px; margin-top: 6px; }
+.prod { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr) 5.5rem 5.5rem; gap: 12px; align-items: center; font-size: .85rem; }
+.prod .nm { display: flex; gap: 8px; align-items: center; }
+.prod .nm i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.prod .bar { height: 18px; border-radius: 6px; min-width: 3px; }
+.prod .num { text-align: right; font-variant-numeric: tabular-nums; }
+.prod .num small { display: block; color: var(--haze); font-size: .7rem; }
+.prod.head { color: var(--haze); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+#dots { margin: 6px 0 16px; }
+.mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.mini > div { border-top: 1px solid var(--rail); padding-top: 10px; }
+.mini .n { font-family: var(--display); font-weight: 700; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.mini .l { color: var(--haze); font-size: .78rem; margin-top: 6px; }
+
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
 footer p { margin: 0 0 6px; }
@@ -146,7 +199,17 @@ footer p { margin: 0 0 6px; }
   .rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--rail); }
   .stat:nth-child(-n+2) { border-top: 0; }
-  .pair, .tagsrow { grid-template-columns: 1fr; }
+  .pair, .tagsrow, .furnace { grid-template-columns: 1fr; }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi.hot { grid-column: 1 / -1; }
+}
+@media (max-width: 560px) {
+  .slab.main { width: 54vw; }
+  .slab.ref { width: 34vw; }
+  .kpis { grid-template-columns: 1fr; }
+  .prod { grid-template-columns: 7rem minmax(0, 1fr) 4.5rem; }
+  .prod .num.t { display: none; }
+  .mini { grid-template-columns: 1fr 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .live.on i, .slab.main.shine .card::after { animation: none; }
@@ -181,11 +244,32 @@ footer p { margin: 0 0 6px; }
 
   <section class="rail" id="rail" aria-label="Key ratios"></section>
 
+  <section aria-labelledby="h-platform">
+    <div class="band">
+      <h2 id="h-platform">Every pack ripped, <span class="x">every buyback burned</span></h2>
+      <p id="platform-sub">Grail Break's own platform numbers since launch.</p>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
   <section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
     <p class="sub">Eastern-time days since launch. Revenue jumped when $BREAK began trading on Oct 16; the faded bars are today so far.</p>
     <div class="chart" id="daily"></div>
   </section>
+
+  <div class="pair">
+    <section class="panel" aria-labelledby="h-cumul">
+      <h2 id="h-cumul">Volume and revenue, running total</h2>
+      <p class="sub">Everything since launch, added up day by day. The last point is today so far.</p>
+      <div class="chart" id="cumul"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-burnline">
+      <h2 id="h-burnline">$BREAK burned, running total</h2>
+      <p class="sub">Every buyback since launch. Dot size is the USD spent; the right axis is the share of total supply gone.</p>
+      <div class="chart" id="burnline"></div>
+    </section>
+  </div>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-trail">
@@ -207,15 +291,48 @@ footer p { margin: 0 0 6px; }
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 
-  <section class="panel" style="margin-top:20px" aria-labelledby="h-mix">
-    <h2 id="h-mix">Where the volume comes from</h2>
-    <p class="sub">Since launch. Sell-backs are cards sold back for USDC, so about half of volume is money flowing back out.</p>
-    <div class="mix" id="mix"></div>
-    <div class="legend" id="legend"></div>
+  <div class="pair">
+    <section class="panel" aria-labelledby="h-mix">
+      <h2 id="h-mix">Where the volume comes from</h2>
+      <p class="sub">Since launch. Sell-backs are cards sold back for USDC, so about half of volume is money flowing back out.</p>
+      <div class="mix" id="mix"></div>
+      <div class="prods" id="prods"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-people">
+      <h2 id="h-people">Who's ripping</h2>
+      <p class="sub" id="people-sub">Each dot is a registered user; the bright ones have bought.</p>
+      <div id="dots"></div>
+      <div class="mini" id="peoplestats"></div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:20px" aria-labelledby="h-furnace">
+    <h2 id="h-furnace">The burn</h2>
+    <p class="sub">The hourly buy and burn from $BREAK trading fees, plus Pump.fun's one-time graduation boost on the pool.</p>
+    <div class="furnace">
+      <div>
+        <div id="gauge"></div>
+        <div class="split" id="split"></div>
+      </div>
+      <div>
+        <div class="vrow"><div class="t"><span>Buybacks per day, against net revenue</span><span id="burnday-note"></span></div></div>
+        <div class="chart" id="burnday"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" style="margin-top:20px" aria-labelledby="h-ledger">
+    <div class="band" style="margin:0">
+      <h2 id="h-ledger" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Buyback ledger</h2>
+      <div class="chips" id="chips" role="group" aria-label="Filter buybacks by source"></div>
+    </div>
+    <p class="sub" id="ledger-sub">Every buyback is a Solana transaction you can open on Solscan.</p>
+    <div class="chart" id="ledgerviz"></div>
+    <div class="ledger"><table><thead><tr><th>Time (ET)</th><th>Source</th><th>$BREAK burned</th><th>USD</th><th>Running total</th><th>Tx</th></tr></thead><tbody id="ledger"></tbody></table></div>
   </section>
 
   <footer>
-    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs ripped, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned uses the total supply implied by DexScreener's market cap and price. "Returned as cards" and "volume per buyer" are this tracker's own arithmetic on those numbers. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -328,15 +445,19 @@ function render() {
   }));
 
   const prods = [...D.products].sort((a, z) => z.volume - a.volume), tot = d3.sum(prods, d => d.volume);
-  const pc = p => p.product === 'Card sell-backs' ? css('--volume') : null;
-  const holoScale = d3.scaleLinear([0, 0.5, 1], [css('--cyan'), css('--violet'), css('--gold')]);
-  const others = prods.filter(p => !pc(p));
-  const colorOf = p => pc(p) || holoScale(others.length > 1 ? others.indexOf(p) / (others.length - 1) : 0);
+  const colorOf = productColors(prods);
   document.getElementById('mix').replaceChildren(...prods.map(p => { const d = el('div'); d.style.width = (p.volume / tot * 100) + '%'; d.style.background = colorOf(p); d.title = `${p.product}: ${F.usd(p.volume)}`; return d; }));
-  document.getElementById('legend').replaceChildren(...prods.map(p => { const d = el('div'), i = el('i'); i.style.background = colorOf(p); d.append(i, el('span', '', p.product), el('b', '', `${F.usd(p.volume)} (${d3.format('.0%')(p.volume / tot)})`)); return d; }));
+  renderProducts(prods, colorOf);
+  if (D.totals && D.totals.packs_ripped !== undefined) {
+    renderKpis(D, colorOf);
+    renderPeople(D);
+    renderBurn(D);
+  }
 
   drawDaily(D.daily);
   drawTrailing(D.trailing, c.cap_to_revenue);
+  if (D.cumulative) drawCumul(D.cumulative);
+  if (D.burns && D.burns.length) { drawBurnline(D.burns, D.supply); drawLedger(); }
   first = false;
 }
 
@@ -411,6 +532,274 @@ function drawTrailing(rows, refMultiple) {
   svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(yld(d))).attr('r', 5).attr('fill', 'var(--night)').attr('stroke', 'var(--ink)').attr('stroke-width', 2)
     .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${pct(yld(d))} revenue yield`, `5-day net ${F.usd(d.net_5d)} a day, annualized ${F.usd(d.net_5d * 365)}`]); })
     .on('mouseleave', () => tip.hide());
+}
+
+/* ---------- Platform numbers ---------- */
+const etTime = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+const tok = v => compact.format(v);
+const usd0 = d3.format('$,.0f');
+const srcColor = kind => kind === 'fees' ? css('--gold') : css('--cyan');
+const SRC_LABEL = { all: 'All', fees: 'Buy & burn', boost: 'Pump boost' };
+let LEDGER = 'all';
+
+function productColors(prods) {
+  const pc = p => p.product === 'Card sell-backs' ? css('--volume') : null;
+  const holoScale = d3.scaleLinear([0, 0.5, 1], [css('--cyan'), css('--violet'), css('--gold')]);
+  const others = prods.filter(p => !pc(p));
+  return p => pc(p) || holoScale(others.length > 1 ? others.indexOf(p) / (others.length - 1) : 0);
+}
+// Small helpers for building text with bold numbers.
+function rich(parts) { const s = el('div', 's'); parts.forEach(p => s.append(Array.isArray(p) ? el('b', '', p[0]) : p)); return s; }
+function segBar(parts) {
+  const s = el('div', 'seg'), t = d3.sum(parts, p => p.v);
+  parts.forEach(p => { const d = el('div'); d.style.width = (p.v / t * 100) + '%'; d.style.background = p.c; d.title = p.title || ''; if (p.label) d.textContent = p.label; s.append(d); });
+  return s;
+}
+const svgIn = (node, W, H) => d3.select(node).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('font-size', '12px').style('font-family', 'var(--text)').style('overflow', 'visible');
+const grow = (sel, attrs, delay = 0) => { if (first && !reduce) return sel.transition().duration(900).delay(delay).ease(d3.easeCubicOut).call(s => Object.entries(attrs).forEach(([k, v]) => s.attr(k, v))); Object.entries(attrs).forEach(([k, v]) => sel.attr(k, v)); return sel; };
+
+function renderKpis(D, colorOf) {
+  const T = D.totals, P = Object.fromEntries(D.products.map(p => [p.product, p]));
+  const sell = P['Card sell-backs'] || { volume: 0, count: 0 };
+  const pulls = D.products.filter(p => p.product !== 'Card sell-backs' && p.product !== 'Break boosts').sort((a, z) => z.count - a.count);
+  const pullSpend = d3.sum(pulls, p => p.volume), paid = T.volume - sell.volume;
+  document.getElementById('platform-sub').textContent = `${usd0(T.volume)} of packs, seats and sell-backs, ${F.int(T.packs_ripped)} packs ripped, and ${usd0(T.buyback_usd)} of $BREAK bought back and burned: ${d3.format('.2%')(T.burned_share)} of the supply, gone for good.`;
+
+  const tile = (k, n, s, viz, hot) => { const t = el('div', 'kpi' + (hot ? ' hot' : '')); t.append(el('div', 'k', k), el('div', 'n', n), s); const v = el('div', 'viz'); if (viz) v.append(viz); t.append(v); return t; };
+
+  // Volume: what came in for pulls against what flowed back out as sell-backs.
+  const vViz = el('div'); vViz.append(segBar([{ v: paid, c: css('--violet'), title: `Bought: ${F.usd(paid)}` }, { v: sell.volume, c: css('--volume'), title: `Sell-backs: ${F.usd(sell.volume)}` }]));
+  const vk = el('div', 'segkey'); const a = el('span'), b = el('span');
+  a.append('Bought ', el('b', '', F.usd(paid))); b.append('Sold back ', el('b', '', F.usd(sell.volume))); vk.append(a, b); vViz.append(vk);
+
+  // Net revenue: daily sparkline columns.
+  const rViz = el('div');
+  { const W = 220, H = 48, rows = D.daily, x = d3.scaleBand(rows.map(d => d.day), [0, W]).padding(.18), y = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [H, 0]);
+    const svg = svgIn(rViz, W, H); holoDefs(svg, 'holo-k', true);
+    const bars = svg.selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('rx', 2).attr('fill', 'url(#holo-k)').attr('opacity', d => d.partial ? .45 : 1).attr('y', H).attr('height', 0);
+    bars.append('title').text(d => `${day(d.day)}: ${F.usd(d.revenue)}`);
+    grow(bars, { y: d => y(d.revenue), height: d => H - y(d.revenue) }, 400); }
+  const rk = el('div', 'segkey'); rk.append(el('span', '', day(D.daily[0].day)), el('span', '', 'Today')); rViz.append(rk);
+
+  // Packs ripped: pulls by product.
+  const pViz = el('div'); pViz.append(segBar(pulls.map(p => ({ v: p.count, c: colorOf(p), title: `${p.product}: ${F.int(p.count)}` }))));
+  const pk = el('div', 'segkey'); pulls.slice(0, 3).forEach(p => { const s = el('span'); s.append(p.product.replace('Gacha packs', 'Gacha').replace('Break seats', 'Breaks') + ' ', el('b', '', tok(p.count))); pk.append(s); }); pViz.append(pk);
+
+  // Card value pulled against what was spent on pulls.
+  const cViz = el('div', 'duo'), mx = Math.max(pullSpend, T.card_value_pulled);
+  [['Spent on pulls', pullSpend, css('--volume')], ['Card value pulled', T.card_value_pulled, null]].forEach(([l, v, c]) => {
+    const r = el('div', 'row'), tr = el('div', 'track'), f = el('div'); f.style.width = (v / mx * 100) + '%'; f.style.background = c || 'var(--holo)'; tr.append(f); r.append(el('span', '', l), el('b', '', F.usd(v)), tr); cViz.append(r);
+  });
+
+  // Bought back: share of supply burned as a ring.
+  const bViz = el('div'); bViz.style.display = 'flex'; bViz.style.alignItems = 'center'; bViz.style.gap = '12px';
+  { const R = 30, svg = svgIn(bViz, 72, 72).attr('width', 72).attr('height', 72), g = svg.append('g').attr('transform', 'translate(36,36)'); holoDefs(svg, 'holo-r', false);
+    const arc = d3.arc().innerRadius(R - 8).outerRadius(R).cornerRadius(4).startAngle(0);
+    const maxShare = Math.max(.1, Math.ceil(T.burned_share * 1.25 / .05) * .05);
+    g.append('path').attr('d', arc({ endAngle: 2 * Math.PI })).attr('fill', 'rgba(158,165,214,.15)');
+    const p = g.append('path').attr('fill', 'url(#holo-r)'), end = 2 * Math.PI * T.burned_share / maxShare;
+    if (first && !reduce) p.transition().duration(1400).delay(500).ease(d3.easeCubicOut).attrTween('d', () => t => arc({ endAngle: end * t })); else p.attr('d', arc({ endAngle: end }));
+    g.append('text').attr('text-anchor', 'middle').attr('dy', '.35em').attr('fill', 'var(--ink)').attr('font-weight', 700).attr('font-size', 13).text(d3.format('.1%')(T.burned_share));
+    bViz.firstChild.setAttribute('aria-label', `${d3.format('.2%')(T.burned_share)} of supply burned, on a scale to ${d3.format('.0%')(maxShare)}`); }
+  const bt = el('div', 's'); bt.append(el('b', '', tok(T.burned) + ' $BREAK'), ' burned, ', d3.format('.2%')(T.burned_share), ' of supply'); bViz.append(bt);
+
+  document.getElementById('kpis').replaceChildren(
+    tile('Volume', usd0(T.volume), rich([[F.int(T.sales)], ' packs and seats, ', [F.int(T.sellbacks)], ' sell-backs']), vViz),
+    tile('Net revenue', usd0(T.revenue), rich([[d3.format('.1%')(T.revenue / T.volume)], ' of volume kept as fees']), rViz),
+    tile('Packs ripped', F.int(T.packs_ripped), rich(['Avg ', [F.usd(T.card_value_pulled / T.packs_ripped)], ' of card value per pull']), pViz),
+    tile('Card value pulled', usd0(T.card_value_pulled), rich([[d3.format('.0%')(T.card_value_pulled / pullSpend)], ' of pull spend returned as cards']), cViz),
+    tile('Bought back', usd0(T.buyback_usd), rich([[F.int(T.buyback_count)], ' buybacks, ', [d3.format('.0%')(T.buyback_usd / T.revenue)], ' of net revenue']), bViz, true)
+  );
+}
+
+function renderProducts(prods, colorOf) {
+  const mx = d3.max(prods, p => p.volume), tot = d3.sum(prods, p => p.volume), box = document.getElementById('prods');
+  const head = el('div', 'prod head'); head.append(el('span', '', 'Product'), el('span', '', 'Volume'), el('span', 'num', 'Count'), el('span', 'num t', 'Avg ticket'));
+  box.replaceChildren(head, ...prods.map(p => {
+    const r = el('div', 'prod'), nm = el('div', 'nm'), i = el('i'); i.style.background = colorOf(p); nm.append(i, el('span', '', p.product));
+    const bar = el('div', 'bar'); bar.style.width = Math.max(p.volume / mx * 100, .8) + '%'; bar.style.background = colorOf(p); bar.title = `${F.usd(p.volume)} (${d3.format('.0%')(p.volume / tot)} of volume)`;
+    const wrap = el('div'); wrap.style.display = 'flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '8px'; wrap.append(bar, el('span', 'vval', F.usd(p.volume)));
+    const cnt = el('div', 'num', F.int(p.count)), avg = el('div', 'num t', p.count ? F.usd(p.volume / p.count) : '–');
+    r.append(nm, wrap, cnt, avg); return r;
+  }));
+}
+
+function renderPeople(D) {
+  const T = D.totals, users = T.users || 0, buyers = T.buyers || 0, box = document.getElementById('dots');
+  box.replaceChildren();
+  document.getElementById('people-sub').textContent = `${F.int(users)} registered users, ${F.int(buyers)} of whom have bought. Each dot is one user; the bright ones are buyers.`;
+  const W = Math.max(box.clientWidth, 260), cols = W < 420 ? 15 : 25, gap = W / cols, r = Math.min(gap * .36, 9), rowsN = Math.ceil(users / cols), H = rowsN * gap;
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-d', false);
+  const dots = svg.selectAll('circle').data(d3.range(users)).join('circle').attr('cx', i => (i % cols) * gap + gap / 2).attr('cy', i => Math.floor(i / cols) * gap + gap / 2)
+    .attr('fill', i => i < buyers ? css('--gold') : 'rgba(158,165,214,.22)');
+  dots.filter(i => i < buyers).attr('fill', (i) => d3.interpolateRgb(css('--cyan'), css('--gold'))((i % cols) / (cols - 1)));
+  if (first && !reduce) dots.attr('r', 0).transition().duration(400).delay(i => 200 + i * 6).attr('r', r); else dots.attr('r', r);
+  svg.attr('role', 'img').attr('aria-label', `${buyers} of ${users} users have bought`);
+  const paidVol = T.volume - (D.products.find(p => p.product === 'Card sell-backs') || { volume: 0 }).volume;
+  const stat = (n, l) => { const d = el('div'); d.append(el('div', 'n', n), el('div', 'l', l)); return d; };
+  document.getElementById('peoplestats').replaceChildren(
+    stat(d3.format('.0%')(buyers / users), 'of users have bought'),
+    stat(F.int(T.breaks_done), 'breaks completed'),
+    stat(F.usd(paidVol / buyers), 'bought per buyer'));
+}
+
+function renderBurn(D) {
+  const T = D.totals, S = D.burn_sources || [];
+  drawGauge(T.burned_share, T.burned, D.supply);
+  const order = ['fees', 'boost'], src = order.map(k => S.find(s => s.kind === k)).filter(Boolean);
+  const split = document.getElementById('split'); split.replaceChildren();
+  [['USD spent', 'usd', F.usd], ['$BREAK burned', 'burned', tok]].forEach(([lab, f, fmt]) => {
+    const w = el('div'), l = el('div', 'lab'); l.append(el('span', '', lab), el('span', '', fmt(d3.sum(src, s => s[f]))));
+    w.append(l, segBar(src.map(s => ({ v: s[f], c: srcColor(s.kind), title: `${s.source}: ${fmt(s[f])}`, label: `${d3.format('.0%')(s[f] / d3.sum(src, x => x[f]))}` }))));
+    split.append(w);
+  });
+  const key = el('div', 'legend'); key.style.gridTemplateColumns = '1fr'; src.forEach(s => { const d = el('div'), i = el('i'); i.style.background = srcColor(s.kind); d.append(i, el('span', '', s.source), el('b', '', `${F.int(s.count)}×, ${F.usd(s.usd)}`)); key.append(d); });
+  split.append(key);
+  drawBurnDays(D);
+  const chips = document.getElementById('chips');
+  chips.replaceChildren(...['all', 'fees', 'boost'].map(k => {
+    const n = k === 'all' ? D.burns.length : D.burns.filter(b => b.kind === k).length;
+    const c = el('button', 'chip'); c.type = 'button'; c.setAttribute('aria-pressed', String(LEDGER === k));
+    if (k !== 'all') { const i = el('i'); i.style.background = srcColor(k); c.append(i); }
+    c.append(`${SRC_LABEL[k]} · ${n}`); c.onclick = () => { LEDGER = k; renderBurn(DATA); drawLedger(); }; return c;
+  }));
+}
+
+function drawGauge(share, burned, supply) {
+  const box = document.getElementById('gauge'); box.replaceChildren();
+  const W = 360, H = 220, R = 150, cx = W / 2, cy = 175, maxShare = Math.max(.1, Math.ceil(share * 1.25 / .05) * .05);
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-g', false);
+  const ang = d3.scaleLinear([0, maxShare], [-Math.PI / 2, Math.PI / 2]);
+  const arc = d3.arc().innerRadius(R - 26).outerRadius(R).cornerRadius(8);
+  const g = svg.append('g').attr('transform', `translate(${cx},${cy})`);
+  g.append('path').attr('d', arc({ startAngle: -Math.PI / 2, endAngle: Math.PI / 2 })).attr('fill', 'rgba(158,165,214,.13)');
+  const p = g.append('path').attr('fill', 'url(#holo-g)');
+  if (first && !reduce) p.transition().duration(1600).delay(300).ease(d3.easeCubicOut).attrTween('d', () => t => arc({ startAngle: -Math.PI / 2, endAngle: ang(share * t) }));
+  else p.attr('d', arc({ startAngle: -Math.PI / 2, endAngle: ang(share) }));
+  const ticks = d3.range(0, maxShare + 1e-9, maxShare <= .1 ? .02 : .05);
+  g.selectAll('text.tk').data(ticks).join('text').attr('class', 'tk').attr('x', d => Math.sin(ang(d)) * (R + 16)).attr('y', d => -Math.cos(ang(d)) * (R + 16) + 4).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').attr('font-size', 11).text(d3.format('.0%'));
+  g.append('text').attr('text-anchor', 'middle').attr('y', -28).attr('fill', 'var(--ink)').attr('font-family', 'var(--display)').attr('font-weight', 900).attr('font-size', 64).text(d3.format('.2%')(share));
+  g.append('text').attr('text-anchor', 'middle').attr('y', 2).attr('fill', 'var(--haze)').attr('font-size', 13).text('of total supply burned');
+  g.append('text').attr('text-anchor', 'middle').attr('y', 34).attr('fill', 'var(--ink)').attr('font-size', 13).attr('font-weight', 600).text(`${tok(burned)} of ${tok(supply)} $BREAK`);
+  svg.attr('role', 'img').attr('aria-label', `${d3.format('.2%')(share)} of total supply burned`);
+}
+
+function drawBurnDays(D) {
+  const box = document.getElementById('burnday'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const first0 = D.burn_days[0] && D.burn_days[0].day; if (!first0) return;
+  const BD = Object.fromEntries(D.burn_days.map(d => [d.day, d]));
+  const byKind = {}; D.burns.forEach(b => { const d = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(b.time)); (byKind[d] || (byKind[d] = { fees: 0, boost: 0 }))[b.kind] += b.usd; });
+  const rows = D.daily.filter(d => d.day >= first0).map(d => ({ day: d.day, revenue: d.revenue, partial: d.partial, fees: (byKind[d.day] || {}).fees || 0, boost: (byKind[d.day] || {}).boost || 0, n: (BD[d.day] || {}).count || 0 }));
+  const totB = d3.sum(rows, r => r.fees + r.boost), totR = d3.sum(rows, r => r.revenue);
+  document.getElementById('burnday-note').textContent = `${d3.format('.0%')(totB / totR)} of net revenue since the first burn`;
+  const W = Math.max(box.clientWidth, 280), H = 240, m = { l: 48, r: 8, t: 12, b: 26 };
+  const svg = svgIn(box, W, H);
+  const x = d3.scaleBand(rows.map(r => r.day), [m.l, W - m.r]).padding(.25), y = d3.scaleLinear([0, d3.max(rows, r => Math.max(r.revenue, r.fees + r.boost))], [H - m.b, m.t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.day)).attr('width', x.bandwidth()).attr('y', r => y(r.revenue)).attr('height', r => H - m.b - y(r.revenue)).attr('rx', 5).attr('fill', 'rgba(74,82,143,.35)').attr('stroke', 'var(--volume)').attr('stroke-dasharray', r => r.partial ? '3 3' : null);
+  const inner = x.bandwidth() * .56, off = (x.bandwidth() - inner) / 2;
+  grow(svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.day) + off).attr('width', inner).attr('rx', 3).attr('fill', srcColor('fees')).attr('y', H - m.b).attr('height', 0), { y: r => y(r.fees), height: r => H - m.b - y(r.fees) }, 500);
+  grow(svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.day) + off).attr('width', inner).attr('rx', 3).attr('fill', srcColor('boost')).attr('y', r => y(r.fees)).attr('height', 0), { y: r => y(r.fees + r.boost), height: r => y(r.fees) - y(r.fees + r.boost) }, 700);
+  const step = W < 480 ? 2 : 1;
+  svg.append('g').selectAll('text').data(rows.filter((r, i) => i % step === 0)).join('text').attr('x', r => x(r.day) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(r => day(r.day));
+  const k = svg.append('g').attr('transform', `translate(${m.l + 6},${m.t + 4})`).attr('font-size', 11);
+  [['Net revenue', 'rgba(74,82,143,.6)'], ['Buy & burn', srcColor('fees')], ['Pump boost', srcColor('boost')]].forEach(([t, c], i) => { const gg = k.append('g').attr('transform', `translate(${i * 96},0)`); gg.append('rect').attr('width', 10).attr('height', 10).attr('rx', 2).attr('y', -9).attr('fill', c); gg.append('text').attr('x', 14).attr('fill', 'var(--haze)').text(t); });
+  const tip = tipFor(box);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.day)).attr('width', x.bandwidth()).attr('y', m.t).attr('height', H - m.b - m.t).attr('fill', 'transparent')
+    .on('mousemove', (e, r) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(r.day) + (r.partial ? ', so far' : ''), [`Bought back ${F.usd(r.fees + r.boost)} in ${r.n} burn${r.n === 1 ? '' : 's'}`, `Net revenue ${F.usd(r.revenue)}`, r.revenue ? `${d3.format('.0%')((r.fees + r.boost) / r.revenue)} of revenue` : '']); })
+    .on('mouseleave', () => tip.hide());
+}
+
+function drawCumul(rows) {
+  const box = document.getElementById('cumul'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const W = Math.max(box.clientWidth, 280), H = 340, l = 52, r = 64, vTop = 24, vBot = 196, rTop = 236, rBot = 310;
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-c', false);
+  const x = d3.scalePoint(rows.map(d => d.day), [l, W - r]);
+  const yv = d3.scaleLinear([0, d3.max(rows, d => d.volume)], [vBot, vTop]).nice(), yr = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [rBot, rTop]).nice();
+  [[yv, 4], [yr, 2]].forEach(([y, n]) => {
+    svg.append('g').selectAll('line').data(y.ticks(n)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+    svg.append('g').selectAll('text').data(y.ticks(n)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
+  });
+  svg.append('text').attr('x', l).attr('y', vTop - 8).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Volume');
+  svg.append('text').attr('x', l).attr('y', rTop - 10).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Net revenue');
+  const fade = (id, c) => { const g = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1); g.append('stop').attr('offset', '0%').attr('stop-color', c).attr('stop-opacity', .4); g.append('stop').attr('offset', '100%').attr('stop-color', c).attr('stop-opacity', 0); };
+  fade('fade-v', css('--violet')); fade('fade-r', css('--gold'));
+  const curve = d3.curveMonotoneX;
+  [[yv, vBot, 'volume', 'fade-v'], [yr, rBot, 'revenue', 'fade-r']].forEach(([y, base, f, fid], i) => {
+    svg.append('path').datum(rows).attr('fill', `url(#${fid})`).attr('d', d3.area(d => x(d.day), base, d => y(d[f])).curve(curve));
+    const p = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#holo-c)').attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('d', d3.line(d => x(d.day), d => y(d[f])).curve(curve));
+    if (first && !reduce) { const L = p.node().getTotalLength(); p.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(300 + i * 200).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
+    const last = rows[rows.length - 1];
+    svg.append('circle').attr('cx', x(last.day)).attr('cy', y(last[f])).attr('r', 5).attr('fill', 'var(--gold)');
+    svg.append('text').attr('x', x(last.day) + 10).attr('y', y(last[f]) + 4).attr('fill', 'var(--ink)').attr('font-weight', 600).text(F.usd(last[f]));
+  });
+  const step = Math.ceil(rows.length / Math.max(2, Math.floor((W - l - r) / 64)));
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0 || i === rows.length - 1)).join('text').attr('x', d => x(d.day)).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => d.partial ? 'Now' : day(d.day));
+  const tip = tipFor(box), guide = svg.append('line').attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--haze)').attr('stroke-opacity', 0);
+  svg.append('rect').attr('x', l).attr('y', vTop).attr('width', W - l - r).attr('height', rBot - vTop).attr('fill', 'transparent')
+    .on('mousemove', e => { const [mx] = d3.pointer(e); const d = rows[d3.minIndex(rows, d => Math.abs(x(d.day) - mx))]; guide.attr('x1', x(d.day)).attr('x2', x(d.day)).attr('stroke-opacity', .5); const [px, py] = d3.pointer(e, box); tip.show(px, py, (d.partial ? 'Now' : 'Through ' + day(d.day)), [`Volume ${F.usd(d.volume)}`, `Net revenue ${F.usd(d.revenue)}`]); })
+    .on('mouseleave', () => { tip.hide(); guide.attr('stroke-opacity', 0); });
+}
+
+function drawBurnline(burns, supply) {
+  const box = document.getElementById('burnline'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const W = Math.max(box.clientWidth, 280), H = 340, m = { l: 52, r: 56, t: 20, b: 30 };
+  const svg = svgIn(box, W, H);
+  const t0 = new Date(burns[0].time), t1 = new Date(Math.max(Date.now(), +new Date(burns[burns.length - 1].time)));
+  const x = d3.scaleTime([t0, t1], [m.l, W - m.r]), maxB = burns[burns.length - 1].total_burned;
+  const y = d3.scaleLinear([0, maxB * 1.12], [H - m.b, m.t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(5)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '0' : tok(d));
+  svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', W - m.r + 8).attr('y', d => y(d) + 4).attr('fill', 'var(--haze)').text(d => d3.format('.1%')(d / supply));
+  const xt = x.ticks(W < 480 ? 3 : 6);
+  svg.append('g').selectAll('text').data(xt).join('text').attr('x', x).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d3.timeFormat('%b %-d'));
+  const pts = [{ time: burns[0].time, total_burned: 0 }, ...burns, { time: t1.toISOString(), total_burned: maxB }];
+  const g = svg.append('defs').append('linearGradient').attr('id', 'fade-b').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
+  g.append('stop').attr('offset', '0%').attr('stop-color', css('--gold')).attr('stop-opacity', .35); g.append('stop').attr('offset', '100%').attr('stop-color', css('--gold')).attr('stop-opacity', 0);
+  svg.append('path').datum(pts).attr('fill', 'url(#fade-b)').attr('d', d3.area(d => x(new Date(d.time)), H - m.b, d => y(d.total_burned)).curve(d3.curveStepAfter));
+  const path = svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', 'var(--gold)').attr('stroke-width', 2.5).attr('d', d3.line(d => x(new Date(d.time)), d => y(d.total_burned)).curve(d3.curveStepAfter));
+  if (first && !reduce) { const L = path.node().getTotalLength(); path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1600).delay(300).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
+  const rs = d3.scaleSqrt([0, d3.max(burns, b => b.usd)], [2.5, 10]);
+  const tip = tipFor(box);
+  const dots = svg.append('g').selectAll('circle').data(burns).join('circle').attr('cx', b => x(new Date(b.time))).attr('cy', b => y(b.total_burned)).attr('fill', b => srcColor(b.kind)).attr('fill-opacity', .85).attr('stroke', 'var(--night)').attr('stroke-width', 1)
+    .on('mousemove', (e, b) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, etTime.format(new Date(b.time)) + ' ET', [b.source, `${tok(b.burned)} $BREAK for ${F.usd(b.usd)}`, `Running total ${tok(b.total_burned)} (${d3.format('.2%')(b.total_burned / supply)})`]); })
+    .on('mouseleave', () => tip.hide());
+  if (first && !reduce) dots.attr('r', 0).transition().duration(500).delay((b, i) => 600 + i * 18).attr('r', b => rs(b.usd)); else dots.attr('r', b => rs(b.usd));
+  const boost = burns.filter(b => b.kind === 'boost');
+  if (boost.length) {
+    const bx = x(new Date(boost[boost.length - 1].time)), by = y(boost[boost.length - 1].total_burned);
+    svg.append('text').attr('x', bx + 14).attr('y', by + 4).attr('fill', css('--cyan')).text(`Pump.fun boost, ${boost.length} burns`);
+  }
+  svg.append('text').attr('x', W - m.r - 4).attr('y', y(maxB) - 10).attr('text-anchor', 'end').attr('fill', 'var(--ink)').attr('font-weight', 600).text(`${tok(maxB)} $BREAK`);
+}
+
+function drawLedger() {
+  const D = DATA; if (!D || !D.burns) return;
+  const rows = D.burns.filter(b => LEDGER === 'all' || b.kind === LEDGER), supply = D.supply;
+  document.getElementById('ledger-sub').textContent = `${F.int(rows.length)} buybacks · ${F.usd(d3.sum(rows, b => b.usd))} · ${tok(d3.sum(rows, b => b.burned))} $BREAK burned. Newest first; each links to Solscan.`;
+  const box = document.getElementById('ledgerviz'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const W = Math.max(box.clientWidth, 280), H = 220, m = { l: 48, r: 10, t: 14, b: 26 };
+  const svg = svgIn(box, W, H);
+  const all = D.burns, x = d3.scaleTime(d3.extent(all, b => new Date(b.time)), [m.l + 6, W - m.r - 6]), y = d3.scaleLinear([0, d3.max(all, b => b.usd)], [H - m.b, m.t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
+  svg.append('g').selectAll('text').data(x.ticks(W < 480 ? 3 : 7)).join('text').attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d3.timeFormat('%b %-d'));
+  const on = b => LEDGER === 'all' || b.kind === LEDGER;
+  svg.append('g').selectAll('line').data(all).join('line').attr('x1', b => x(new Date(b.time))).attr('x2', b => x(new Date(b.time))).attr('y1', H - m.b).attr('y2', b => y(b.usd)).attr('stroke', b => srcColor(b.kind)).attr('stroke-opacity', b => on(b) ? .6 : .08);
+  const boostB = all.filter(b => b.kind === 'boost');
+  if (boostB.length > 3) { const bx = x(new Date(boostB[boostB.length - 1].time)), by = y(d3.max(boostB, b => b.usd)); svg.append('text').attr('x', bx + 10).attr('y', by - 6).attr('fill', css('--cyan')).attr('opacity', LEDGER === 'fees' ? .25 : 1).text(W < 520 ? `${boostB.length} boost burns` : `${boostB.length} Pump.fun boost burns in ${Math.max(1, Math.round((new Date(boostB[boostB.length - 1].time) - new Date(boostB[0].time)) / 60000))} min`); }
+  const tip = tipFor(box);
+  svg.append('g').selectAll('circle').data(all).join('circle').attr('cx', b => x(new Date(b.time))).attr('cy', b => y(b.usd)).attr('r', 4.5).attr('fill', b => srcColor(b.kind)).attr('opacity', b => on(b) ? 1 : .1).attr('stroke', 'var(--night)')
+    .on('mousemove', (e, b) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, etTime.format(new Date(b.time)) + ' ET', [b.source, `${F.usd(b.usd)} for ${tok(b.burned)} $BREAK`]); })
+    .on('mouseleave', () => tip.hide());
+  document.getElementById('ledger').replaceChildren(...[...rows].reverse().map(b => {
+    const tr = el('tr'), s = el('td'), dot = el('span'); dot.style.background = srcColor(b.kind); s.append(dot, b.kind === 'fees' ? 'Buy & burn' : 'Pump boost');
+    const u = el('td', '', F.usd(b.usd));
+    const tx = el('td'); if (b.tx) { const a = el('a', '', b.tx.slice(0, 6) + '…'); a.href = 'https://solscan.io/tx/' + encodeURIComponent(b.tx); a.target = '_blank'; a.rel = 'noopener'; tx.append(a); }
+    tr.append(el('td', '', etTime.format(new Date(b.time))), s, el('td', '', F.int(Math.round(b.burned))), u, el('td', '', `${tok(b.total_burned)} · ${d3.format('.2%')(b.total_burned / supply)}`), tx);
+    return tr;
+  }));
 }
 
 // Gentle tilt on the main slab when pointed at.

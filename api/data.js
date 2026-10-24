@@ -71,14 +71,41 @@ function computeAll(raw) {
     return { day: d.day, net_5d: n, cap_to_revenue: breakCap / (n * 365) };
   });
 
+  // Buybacks and burns, oldest first, with a running total of BREAK burned.
+  const SOURCE_NAME = { 'Pump graduation boost': 'Pump.fun graduation boost', 'Buy & burn': 'Buy & burn (trading fees)' };
+  let runBurned = 0, runUsd = 0;
+  const burns = (gb.burns || [])
+    .map(b => ({ time: b.time, source: SOURCE_NAME[b.source] || b.source, kind: b.source === 'Buy & burn' ? 'fees' : 'boost', burned: Number(b.burned), usd: Number(b.usd), tx: b.tx }))
+    .filter(b => b.time && isFinite(b.burned))
+    .sort((a, z) => new Date(a.time) - new Date(z.time))
+    .map(b => { runBurned += b.burned; runUsd += b.usd; return { ...b, total_burned: runBurned, total_usd: runUsd }; });
+  // Total supply from DexScreener (market cap / price); pump.fun tokens launch with 1B.
+  const supply = breakPrice > 0 && isFinite(breakCap / breakPrice) ? breakCap / breakPrice : 1e9;
+  const bySource = {};
+  burns.forEach(b => { const s = bySource[b.source] || (bySource[b.source] = { source: b.source, kind: b.kind, count: 0, usd: 0, burned: 0 }); s.count++; s.usd += b.usd; s.burned += b.burned; });
+  // Buyback USD by Eastern day, to line up with the daily revenue bars.
+  const etDay = t => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
+  const burnDays = {};
+  burns.forEach(b => { const d = etDay(b.time); const r = burnDays[d] || (burnDays[d] = { day: d, usd: 0, burned: 0, count: 0 }); r.usd += b.usd; r.burned += b.burned; r.count++; });
+
+  let cv = 0, cr = 0;
+  const cumulative = daily.map(d => { cv += d.volume; cr += d.revenue; return { day: d.day, volume: cv, revenue: cr, partial: d.partial }; });
+
+  const hall = gb.hall || {};
   return {
     updated: new Date().toISOString(),
     grailUpdated: gb.updated || null,
-    breakPrice, breakCap, cardsCap,
+    breakPrice, breakCap, cardsCap, supply,
     liquidity: bp.liquidity ? Number(bp.liquidity.usd) : null,
-    totals: { volume: Number(gb.volume), revenue: Number(gb.revenue), users: gb.users, buyers: gb.buyers },
-    ratios, implied, trailing, daily,
-    products: (gb.products || []).map(p => ({ product: p.k, volume: Number(p.usd), count: p.n }))
+    totals: {
+      volume: Number(gb.volume), revenue: Number(gb.revenue),
+      sales: gb.sales, sellbacks: gb.sellbacks, users: gb.users, buyers: gb.buyers, breaks_done: gb.breaksDone,
+      packs_ripped: hall.count, card_value_pulled: Number(hall.usd),
+      buyback_usd: runUsd, buyback_count: burns.length, burned: runBurned, burned_share: runBurned / supply
+    },
+    ratios, implied, trailing, daily, cumulative,
+    products: (gb.products || []).map(p => ({ product: p.k, volume: Number(p.usd), count: p.n })),
+    burns, burn_sources: Object.values(bySource), burn_days: Object.values(burnDays).sort((a, z) => a.day < z.day ? -1 : 1)
   };
 }
 
