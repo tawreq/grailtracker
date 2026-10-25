@@ -623,14 +623,14 @@ function renderKpis(D, colorOf) {
     if (first && !reduce) p.transition().duration(1400).delay(500).ease(d3.easeCubicOut).attrTween('d', () => t => arc({ endAngle: end * t })); else p.attr('d', arc({ endAngle: end }));
     g.append('text').attr('text-anchor', 'middle').attr('dy', '.35em').attr('fill', 'var(--ink)').attr('font-weight', 700).attr('font-size', 13).text(d3.format('.1%')(T.burned_share));
     bViz.firstChild.setAttribute('aria-label', `${d3.format('.2%')(T.burned_share)} of supply burned, on a scale to ${d3.format('.0%')(maxShare)}`); }
-  const bt = el('div', 's'); bt.append(el('b', '', tok(T.burned) + ' $BREAK'), ' burned, ', d3.format('.2%')(T.burned_share), ' of supply'); bViz.append(bt);
+  const bt = el('div', 's'); bt.append(el('b', '', tok(T.burned) + ' $BREAK'), ' burned of 1B original supply'); bViz.append(bt);
 
   document.getElementById('kpis').replaceChildren(
     tile('Volume', usd0(T.volume), rich([[F.int(T.sales)], ' packs and seats, ', [F.int(T.sellbacks)], ' sell-backs']), vViz),
     tile('Net revenue', usd0(T.revenue), rich([[d3.format('.1%')(T.revenue / T.volume)], ' of volume retained as fees']), rViz),
     tile('Packs opened', F.int(T.packs_ripped), rich(['Avg ', [F.usd(T.card_value_pulled / T.packs_ripped)], ' of card value per pack']), pViz),
     tile('Card value pulled', usd0(T.card_value_pulled), rich([[d3.format('.0%')(T.card_value_pulled / pullSpend)], ' of pull spend returned as cards']), cViz),
-    tile('Bought back', usd0(T.buyback_usd), rich([[F.int(T.buyback_count)], ' buybacks, ', [d3.format('.0%')(T.buyback_usd / T.revenue)], ' of net revenue']), bViz, true)
+    tile('Bought back, % of supply', d3.format('.2%')(T.burned_share), rich([[usd0(T.buyback_usd)], ' across ', [F.int(T.buyback_count)], ' buybacks (', [d3.format('.0%')(T.buyback_usd / T.revenue)], ' of net revenue)']), bViz, true)
   );
 }
 
