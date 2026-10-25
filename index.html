@@ -275,7 +275,7 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
-    <p class="sub">Eastern-time days since launch. Each bar is total volume, with net revenue as the lower segment; the figure above each bar is net revenue as a share of volume. Net revenue includes $BREAK trading fees from Oct 16. The faded bar is the current partial day.</p>
+    <p class="sub">Eastern-time days since launch. Each bar is total volume, with net revenue as the lower segment. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees from Oct 16. The faded bar is the current partial day.</p>
     <div class="chart" id="daily"></div>
   </section>
 
@@ -491,7 +491,7 @@ function render() {
 function drawDaily(rows) {
   // One bar per day at full volume, split into net revenue (bottom) and the rest of volume (top).
   const box = document.getElementById('daily'); box.querySelectorAll('svg').forEach(s => s.remove());
-  const W = Math.max(box.clientWidth, 300), H = 420, l = 56, r = 10, top = 46, bot = 380;
+  const W = Math.max(box.clientWidth, 300), H = 420, l = 56, r = 52, top = W < 560 ? 66 : 46, bot = 380;
   const svg = svgIn(box, W, H); holoDefs(svg, 'holo-v', true);
   const data = rows.map(d => ({ ...d, net: Math.min(d.revenue, d.volume), rest: Math.max(d.volume - d.revenue, 0), total: Math.max(d.volume, d.revenue) }));
   const x = d3.scaleBand(data.map(d => d.day), [l, W - r]).padding(0.22);
@@ -501,6 +501,7 @@ function drawDaily(rows) {
   svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
   const k = svg.append('g').attr('transform', `translate(${l},14)`).attr('font-size', 12);
   [['Net revenue', 'url(#holo-v)'], ['Rest of volume', css('--volume')]].forEach(([t, c], i) => { const g = k.append('g').attr('transform', `translate(${i * 120},0)`); g.append('rect').attr('width', 12).attr('height', 12).attr('rx', 3).attr('y', -10).attr('fill', c); g.append('text').attr('x', 18).attr('fill', 'var(--haze)').text(t); });
+  { const g = k.append('g').attr('transform', W < 560 ? 'translate(0,20)' : 'translate(240,0)'); g.append('line').attr('x1', 0).attr('x2', 16).attr('y1', -4).attr('y2', -4).attr('stroke', css('--gold')).attr('stroke-width', 2.5); g.append('circle').attr('cx', 8).attr('cy', -4).attr('r', 3).attr('fill', css('--gold')); g.append('text').attr('x', 22).attr('fill', 'var(--haze)').text(W < 560 ? 'Net / volume (right)' : 'Net revenue / volume (right axis)'); }
   const launch = '2026-10-16';
   if (x(launch) !== undefined) {
     const lx = x(launch) - x.step() * x.padding() / 2;
@@ -520,8 +521,14 @@ function drawDaily(rows) {
     rb.transition().duration(700).delay((d, i) => 300 + i * 40).ease(d3.easeCubicOut).attr('y', d => y(d.net)).attr('height', d => bot - y(d.net));
     vb.attr('y', d => y(d.net)).transition().duration(900).delay((d, i) => 500 + i * 40).ease(d3.easeCubicOut).attr('y', d => y(d.net + d.rest)).attr('height', d => y(d.net) - y(d.net + d.rest));
   } else place();
-  // Net revenue as a share of volume, above each bar, where there is room.
-  if (bw >= 30) svg.append('g').selectAll('text').data(data).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', d => y(d.total) - 8).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--haze)').text(d => d.volume ? d3.format('.1%')(d.revenue / d.volume) : '');
+  // Net revenue as a share of volume: a line on its own right-hand axis.
+  const pd = data.filter(d => d.volume > 0).map(d => ({ ...d, pct: d.revenue / d.volume }));
+  const yp = d3.scaleLinear([0, d3.max(pd, d => d.pct)], [bot, top]).nice();
+  svg.append('g').selectAll('text').data(yp.ticks(5)).join('text').attr('x', W - r + 8).attr('y', d => yp(d) + 4).attr('fill', css('--gold')).attr('font-size', 11).text(d3.format('.0%'));
+  const cx = d => x(d.day) + x.bandwidth() / 2;
+  const pl = svg.append('path').datum(pd).attr('fill', 'none').attr('stroke', css('--gold')).attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('d', d3.line(cx, d => yp(d.pct)));
+  if (first && !reduce) { const L = pl.node().getTotalLength(); pl.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(900).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
+  svg.append('g').selectAll('circle').data(pd).join('circle').attr('cx', cx).attr('cy', d => yp(d.pct)).attr('r', 4).attr('fill', 'var(--night)').attr('stroke', css('--gold')).attr('stroke-width', 2).attr('opacity', d => d.partial ? .5 : 1);
   svg.append('g').selectAll('rect').data(data).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', top).attr('height', bot - top).attr('fill', 'transparent')
     .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), [`Volume ${F.usd(d.volume)}`, `Net revenue ${F.usd(d.revenue)} (${d.volume ? d3.format('.1%')(d.revenue / d.volume) : '–'} of volume)`]); })
     .on('mouseleave', () => tip.hide());
