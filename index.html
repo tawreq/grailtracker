@@ -240,7 +240,7 @@ footer p { margin: 0 0 6px; }
   <section class="hero" aria-label="Valuation summary">
     <div class="slabs" id="slabs">
       <div class="slab main" id="slab-break">
-        <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 5 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">revenue yield</div></div></div>
+        <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 7 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">revenue yield</div></div></div>
         <div class="card"><div class="big" id="big-break">–</div><div class="cap">Annualized net revenue / market cap</div></div>
       </div>
       <div class="slab ref">
@@ -276,32 +276,32 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
-    <p class="sub">Eastern-time days since launch. Each bar is total volume, with net revenue as the lower segment. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees from Oct 16. The faded bar is the current partial day.</p>
+    <p class="sub">Last 7 full days plus today (Eastern time). Each bar is total volume, with net revenue as the lower segment. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees. The faded bar is the current partial day.</p>
     <div class="chart" id="daily"></div>
   </section>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-cumul">
       <h2 id="h-cumul">Volume and revenue, running total</h2>
-      <p class="sub">Cumulative totals since launch. The last point includes the current partial day.</p>
+      <p class="sub">Running totals since launch, shown for the last 7 days. The last point includes the current partial day.</p>
       <div class="chart" id="cumul"></div>
     </section>
     <section class="panel" aria-labelledby="h-burnline">
       <h2 id="h-burnline">$BREAK burned, running total</h2>
-      <p class="sub">Cumulative $BREAK burned per buyback. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
+      <p class="sub">Running total of $BREAK burned since launch, shown for the last 7 days. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
       <div class="chart" id="burnline"></div>
     </section>
   </div>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-trail">
-      <h2 id="h-trail">Trailing 5-day revenue yield</h2>
-      <p class="sub">Annualized net revenue from each day's trailing 5 days, as a share of current market cap. The dashed line is the $CARDS 30-day figure.</p>
+      <h2 id="h-trail">Trailing 7-day revenue yield</h2>
+      <p class="sub">Annualized net revenue from each day's trailing 7 days, as a share of current market cap, for the last 7 days. The dashed line is the $CARDS 30-day figure.</p>
       <div class="chart" id="trail"></div>
     </section>
     <section class="panel" aria-labelledby="h-vs">
       <h2 id="h-vs">$BREAK vs. $CARDS</h2>
-      <p class="sub">$BREAK, last 5 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
+      <p class="sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
       <div class="versus" id="versus"></div>
     </section>
   </div>
@@ -333,7 +333,7 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-furnace">
     <h2 id="h-furnace">Buybacks and burns</h2>
-    <p class="sub">Sources: the recurring buy and burn funded by $BREAK trading fees, and Pump.fun's one-time graduation boost.</p>
+    <p class="sub">Sources: the recurring buy and burn funded by $BREAK trading fees, and Pump.fun's one-time graduation boost. Totals are since launch; the daily chart shows the last 7 days.</p>
     <div class="furnace">
       <div>
         <div id="gauge"></div>
@@ -404,9 +404,10 @@ function holoDefs(svg, id, vertical) {
 
 function render() {
   const D = DATA; if (!D) return;
+  CUT = windowStart(D.daily);
   const R = Object.fromEntries(D.ratios.map(r => [r.key, r]));
   const I = Object.fromEntries(D.implied.map(r => [r.key, r]));
-  const c = R.cards_30d, b = R.break_5d;
+  const c = R.cards_30d, b = R.break_7d;
 
   countUp(document.getElementById('big-break'), yieldOf(b), F.yld);
   document.getElementById('g-break').textContent = F.yld(yieldOf(b));
@@ -416,17 +417,17 @@ function render() {
   if (first && !reduce) document.getElementById('slab-break').classList.add('shine');
 
   const pitch = document.getElementById('pitch'); pitch.replaceChildren();
-  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK\'s annualized net revenue (last 5 full days) equals ', el('b', '', F.yld(yieldOf(b))),
+  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK\'s annualized net revenue (last 7 full days) equals ', el('b', '', F.yld(yieldOf(b))),
     ' of market cap. The equivalent figure for Collector Crypt ($CARDS, last 30 days) is ', el('b', '', F.yld(yieldOf(c))), '.');
   const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
   document.getElementById('tags').replaceChildren(
     tag('Price', F.price(D.breakPrice)),
-    tag('Implied market cap at $CARDS yield', usdM(I.break_5d.implied_cap)),
+    tag('Implied market cap at $CARDS yield', usdM(I.break_7d.implied_cap)),
     tag('Liquidity', D.liquidity ? F.usd(D.liquidity) : '–'));
 
   const stats = [
     [F.usd(b.market_cap), 'Market cap', null],
-    [F.usd(b.net_day), 'Net revenue per day, last 5 days', null],
+    [F.usd(b.net_day), 'Net revenue per day, last 7 days', null],
     [F.pct(b.net_to_cap), 'Daily net revenue / market cap', F.pct(c.net_to_cap)],
     [F.pct(b.gross_to_cap), 'Daily volume / market cap', F.pct(c.gross_to_cap)],
     [F.pct(b.margin), 'Net margin on volume', F.pct(c.margin)]
@@ -456,10 +457,10 @@ function render() {
     row.append(head, bars); return row;
   }));
 
-  const order = ['break_5d', 'break_1d', 'break_launch'];
-  const names = { break_5d: 'Last 5 days', break_1d: 'Last full day', break_launch: 'Since launch' };
+  const order = ['break_7d', 'break_1d', 'break_launch'];
+  const names = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
   document.getElementById('ptags').replaceChildren(...order.filter(k => I[k]).map(k => {
-    const r = I[k], t = el('div', 'ptag' + (k === 'break_5d' ? ' hot' : ''));
+    const r = I[k], t = el('div', 'ptag' + (k === 'break_7d' ? ' hot' : ''));
     const u = el('div', 'u'); u.append(el('b', '', F.times(r.upside)), ` current market cap of ${usdM(r.market_cap)}`);
     t.append(el('div', 'w', `${names[k]}: ${F.usd(r.net_day)} net revenue per day`), el('div', 'p', usdM(r.implied_cap)), u);
     return t;
@@ -481,11 +482,11 @@ function render() {
   }
 
   drawImplied(D);
-  drawDaily(D.daily);
-  drawTrailing(D.trailing, c.cap_to_revenue);
-  if (D.cumulative) drawCumul(D.cumulative);
-  if (D.arpu && D.arpu.arpu !== null) { renderArpu(D.arpu); drawArpu(D.arpu); }
-  if (D.burns && D.burns.length) { drawBurnline(D.burns, D.supply); drawLedger(); }
+  drawDaily(inWin(D.daily));
+  drawTrailing(inWin(D.trailing), c.cap_to_revenue);
+  if (D.cumulative) drawCumul(inWin(D.cumulative));
+  if (D.arpu && D.arpu.arpu !== null) { renderArpu(D.arpu); drawArpu({ ...D.arpu, series: inWin(D.arpu.series), daily: inWin(D.arpu.daily) }); }
+  if (D.burns && D.burns.length && burnsInWin(D.burns).length) { drawBurnline(burnsInWin(D.burns), D.supply); drawLedger(); }
   first = false;
 }
 
@@ -566,7 +567,7 @@ function drawTrailing(rows, refMultiple) {
   svg.append('text').attr('x', W - m.r + 8).attr('y', ly).attr('fill', 'var(--gold)').attr('font-weight', 600).text(`$BREAK ${pct(yld(last))}`);
   const tip = tipFor(box);
   svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', d => x(d.day)).attr('cy', d => y(yld(d))).attr('r', 5).attr('fill', 'var(--night)').attr('stroke', 'var(--ink)').attr('stroke-width', 2)
-    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${pct(yld(d))} revenue yield`, `5-day net ${F.usd(d.net_5d)} a day, annualized ${F.usd(d.net_5d * 365)}`]); })
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day), [`${pct(yld(d))} revenue yield`, `7-day net ${F.usd(d.net_7d)} a day, annualized ${F.usd(d.net_7d * 365)}`]); })
     .on('mouseleave', () => tip.hide());
 }
 
@@ -577,6 +578,13 @@ const usd0 = d3.format('$,.0f');
 const srcColor = kind => kind === 'fees' ? css('--gold') : css('--cyan');
 const SRC_LABEL = { all: 'All', fees: 'Buy & burn', boost: 'Pump boost' };
 let LEDGER = 'all';
+// Charts show the trailing 7 days: the 7 most recent full days plus today's partial day.
+const WINDOW_DAYS = 7;
+const etDayOf = t => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(t));
+function windowStart(daily) { const full = daily.filter(d => !d.partial); return full.length >= WINDOW_DAYS ? full[full.length - WINDOW_DAYS].day : (daily[0] && daily[0].day); }
+let CUT = null;
+const inWin = arr => arr.filter(d => !CUT || d.day >= CUT);
+const burnsInWin = burns => burns.filter(b => !CUT || etDayOf(b.time) >= CUT);
 
 function productColors(prods) {
   const pc = p => p.product === 'Card sell-backs' ? css('--volume') : null;
@@ -610,12 +618,12 @@ function renderKpis(D, colorOf) {
 
   // Net revenue: daily sparkline columns.
   const rViz = el('div');
-  { const W = 220, H = 48, rows = D.daily, x = d3.scaleBand(rows.map(d => d.day), [0, W]).padding(.18), y = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [H, 0]);
+  { const W = 220, H = 48, rows = inWin(D.daily), x = d3.scaleBand(rows.map(d => d.day), [0, W]).padding(.18), y = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [H, 0]);
     const svg = svgIn(rViz, W, H); holoDefs(svg, 'holo-k', true);
     const bars = svg.selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('rx', 2).attr('fill', 'url(#holo-k)').attr('opacity', d => d.partial ? .45 : 1).attr('y', H).attr('height', 0);
     bars.append('title').text(d => `${day(d.day)}: ${F.usd(d.revenue)}`);
     grow(bars, { y: d => y(d.revenue), height: d => H - y(d.revenue) }, 400); }
-  const rk = el('div', 'segkey'); rk.append(el('span', '', day(D.daily[0].day)), el('span', '', 'Today')); rViz.append(rk);
+  const rk = el('div', 'segkey'); rk.append(el('span', '', day(inWin(D.daily)[0].day)), el('span', '', 'Today')); rViz.append(rk);
 
   // Packs opened: pulls by product.
   const pViz = el('div'); pViz.append(segBar(pulls.map(p => ({ v: p.count, c: colorOf(p), title: `${p.product}: ${F.int(p.count)}` }))));
@@ -729,9 +737,9 @@ function drawBurnDays(D) {
   const first0 = D.burn_days[0] && D.burn_days[0].day; if (!first0) return;
   const BD = Object.fromEntries(D.burn_days.map(d => [d.day, d]));
   const byKind = {}; D.burns.forEach(b => { const d = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(b.time)); (byKind[d] || (byKind[d] = { fees: 0, boost: 0 }))[b.kind] += b.usd; });
-  const rows = D.daily.filter(d => d.day >= first0).map(d => ({ day: d.day, revenue: d.revenue, partial: d.partial, fees: (byKind[d.day] || {}).fees || 0, boost: (byKind[d.day] || {}).boost || 0, n: (BD[d.day] || {}).count || 0 }));
+  const rows = inWin(D.daily).filter(d => d.day >= first0).map(d => ({ day: d.day, revenue: d.revenue, partial: d.partial, fees: (byKind[d.day] || {}).fees || 0, boost: (byKind[d.day] || {}).boost || 0, n: (BD[d.day] || {}).count || 0 }));
   const totB = d3.sum(rows, r => r.fees + r.boost), totR = d3.sum(rows, r => r.revenue);
-  document.getElementById('burnday-note').textContent = `${d3.format('.0%')(totB / totR)} of net revenue since the first burn`;
+  document.getElementById('burnday-note').textContent = `${d3.format('.0%')(totB / totR)} of net revenue, last 7 days`;
   const W = Math.max(box.clientWidth, 280), H = 240, m = { l: 48, r: 8, t: 12, b: 26 };
   const svg = svgIn(box, W, H);
   const x = d3.scaleBand(rows.map(r => r.day), [m.l, W - m.r]).padding(.25), y = d3.scaleLinear([0, d3.max(rows, r => Math.max(r.revenue, r.fees + r.boost))], [H - m.b, m.t]).nice();
@@ -794,7 +802,7 @@ function drawBurnline(burns, supply) {
   svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', W - m.r + 8).attr('y', d => y(d) + 4).attr('fill', 'var(--haze)').text(d => d3.format('.1%')(d / supply));
   const xt = x.ticks(W < 480 ? 3 : 6);
   svg.append('g').selectAll('text').data(xt).join('text').attr('x', x).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d3.timeFormat('%b %-d'));
-  const pts = [{ time: burns[0].time, total_burned: 0 }, ...burns, { time: t1.toISOString(), total_burned: maxB }];
+  const pts = [{ time: burns[0].time, total_burned: burns[0].total_burned - burns[0].burned }, ...burns, { time: t1.toISOString(), total_burned: maxB }];
   const g = svg.append('defs').append('linearGradient').attr('id', 'fade-b').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
   g.append('stop').attr('offset', '0%').attr('stop-color', css('--gold')).attr('stop-opacity', .35); g.append('stop').attr('offset', '100%').attr('stop-color', css('--gold')).attr('stop-opacity', 0);
   svg.append('path').datum(pts).attr('fill', 'url(#fade-b)').attr('d', d3.area(d => x(new Date(d.time)), H - m.b, d => y(d.total_burned)).curve(d3.curveStepAfter));
@@ -817,11 +825,11 @@ function drawBurnline(burns, supply) {
 function drawLedger() {
   const D = DATA; if (!D || !D.burns) return;
   const rows = D.burns.filter(b => LEDGER === 'all' || b.kind === LEDGER), supply = D.supply;
-  document.getElementById('ledger-sub').textContent = `${F.int(rows.length)} buybacks · ${F.usd(d3.sum(rows, b => b.usd))} · ${tok(d3.sum(rows, b => b.burned))} $BREAK burned. Newest first.`;
+  document.getElementById('ledger-sub').textContent = `${F.int(rows.length)} buybacks · ${F.usd(d3.sum(rows, b => b.usd))} · ${tok(d3.sum(rows, b => b.burned))} $BREAK burned since launch. The chart shows the last 7 days; the table lists every buyback, newest first.`;
   const box = document.getElementById('ledgerviz'); box.querySelectorAll('svg').forEach(s => s.remove());
   const W = Math.max(box.clientWidth, 280), H = 220, m = { l: 48, r: 10, t: 14, b: 26 };
   const svg = svgIn(box, W, H);
-  const all = D.burns, x = d3.scaleTime(d3.extent(all, b => new Date(b.time)), [m.l + 6, W - m.r - 6]), y = d3.scaleLinear([0, d3.max(all, b => b.usd)], [H - m.b, m.t]).nice();
+  const all = burnsInWin(D.burns), x = d3.scaleTime(d3.extent(all, b => new Date(b.time)), [m.l + 6, W - m.r - 6]), y = d3.scaleLinear([0, d3.max(all, b => b.usd)], [H - m.b, m.t]).nice();
   svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
   svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
   svg.append('g').selectAll('text').data(x.ticks(W < 480 ? 3 : 7)).join('text').attr('x', x).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d3.timeFormat('%b %-d'));
@@ -845,12 +853,12 @@ function drawLedger() {
 /* ---------- Estimated ARPU ---------- */
 const usd2 = v => v >= 100 ? d3.format('$,.0f')(v) : d3.format('$,.2f')(v);
 function renderArpu(A) {
-  document.getElementById('arpu-sub').textContent = `Net revenue since launch divided by ${F.int(A.users)} registered users (ARPU) and by the ${F.int(A.buyers)} who have bought (ARPPU). Estimated: net revenue includes $BREAK trading fees, which don't come from platform users, and only today's user counts are published, so the history is a lower bound.`;
+  document.getElementById('arpu-sub').textContent = `Net revenue since launch divided by ${F.int(A.users)} registered users (ARPU) and by the ${F.int(A.buyers)} who have bought (ARPPU). Estimated: net revenue includes $BREAK trading fees, which don't come from platform users, and only today's user counts are published, so the history is a lower bound. The chart shows the last 7 days.`;
   const t = (k, n, parts, hot) => { const d = el('div', 'atile' + (hot ? ' hot' : '')); d.append(el('div', 'k', k), el('div', 'n', n), rich(parts)); return d; };
   document.getElementById('atiles').replaceChildren(
     t('ARPU since launch', usd2(A.arpu), ['Net revenue per registered user']),
     t('ARPPU since launch', usd2(A.arppu), ['Per buyer; ', [d3.format('.0%')(A.conversion)], ' of users have bought'], true),
-    t('ARPU run rate, per year', usd2(A.arpu_annual), ['Last 5 days annualized; ', [usd2(A.arppu_annual)], ' per buyer']),
+    t('ARPU run rate, per year', usd2(A.arpu_annual), ['Last 7 days annualized; ', [usd2(A.arppu_annual)], ' per buyer']),
     t('Volume per buyer', usd2(A.volume_per_buyer), ['Packs, seats and sell-backs per buyer'])
   );
 }
@@ -900,9 +908,9 @@ function drawArpu(A) {
 function drawImplied(D) {
   const I = Object.fromEntries(D.implied.map(r => [r.key, r])), cap = D.breakCap;
   const R = Object.fromEntries(D.ratios.map(r => [r.key, r]));
-  if (R.break_5d && R.cards_30d) document.getElementById('implied-sub').textContent = `Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield. $BREAK currently trades at ${d3.format('.2f')(R.break_5d.cap_to_revenue)}x annualized net revenue (last 5 days); $CARDS at ${d3.format('.2f')(R.cards_30d.cap_to_revenue)}x (last 30 days).`;
+  if (R.break_7d && R.cards_30d) document.getElementById('implied-sub').textContent = `Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield. $BREAK currently trades at ${d3.format('.2f')(R.break_7d.cap_to_revenue)}x annualized net revenue (last 7 days); $CARDS at ${d3.format('.2f')(R.cards_30d.cap_to_revenue)}x (last 30 days).`;
   const rows = [{ label: 'Current market cap', v: cap, kind: 'cur' }]
-    .concat(['break_5d', 'break_1d', 'break_launch'].filter(k => I[k]).map(k => ({ label: `Implied, ${MULT_WINS[k].toLowerCase()}`, v: I[k].implied_cap, kind: k })));
+    .concat(['break_7d', 'break_1d', 'break_launch'].filter(k => I[k]).map(k => ({ label: `Implied, ${MULT_WINS[k].toLowerCase()}`, v: I[k].implied_cap, kind: k })));
   const box = document.getElementById('impliedviz'); box.querySelectorAll('svg').forEach(x => x.remove());
   const W = Math.max(box.clientWidth, 280), narrow = W < 560, rowH = 40, m = { l: narrow ? 120 : 180, r: narrow ? 64 : 170, t: 22, b: 6 }, H = m.t + rows.length * rowH + m.b;
   const svg = svgIn(box, W, H); holoDefs(svg, 'holo-i', false);
@@ -914,14 +922,14 @@ function drawImplied(D) {
   svg.append('g').selectAll('text').data(rows).join('text').attr('x', m.l - 10).attr('y', (r, i) => y(i) + y.bandwidth() / 2 + 4).attr('text-anchor', 'end')
     .attr('fill', r => r.kind === 'cur' ? 'var(--ink)' : 'var(--haze)').attr('font-weight', r => r.kind === 'cur' ? 600 : 400).text(r => narrow ? r.label.replace('Implied, ', '').replace('Current market cap', 'Current') : r.label);
   grow(svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', m.l).attr('y', (r, i) => y(i)).attr('height', y.bandwidth()).attr('rx', 5)
-    .attr('fill', r => r.kind === 'cur' ? css('--gold') : 'url(#holo-i)').attr('opacity', r => r.kind === 'break_5d' || r.kind === 'cur' ? 1 : .7).attr('width', 0), { width: r => Math.max(x(r.v) - m.l, 2) }, 200);
+    .attr('fill', r => r.kind === 'cur' ? css('--gold') : 'url(#holo-i)').attr('opacity', r => r.kind === 'break_7d' || r.kind === 'cur' ? 1 : .7).attr('width', 0), { width: r => Math.max(x(r.v) - m.l, 2) }, 200);
   svg.append('line').attr('x1', x(cap)).attr('x2', x(cap)).attr('y1', m.t - 2).attr('y2', H - m.b).attr('stroke', css('--gold')).attr('stroke-dasharray', '4 4').attr('stroke-opacity', .8);
   svg.append('g').selectAll('text').data(rows).join('text').attr('x', r => x(r.v) + 8).attr('y', (r, i) => y(i) + y.bandwidth() / 2 + 4).attr('fill', 'var(--ink)').attr('font-variant-numeric', 'tabular-nums')
     .text(r => r.kind === 'cur' || narrow ? usdM(r.v) : `${usdM(r.v)} · ${d3.format('.1f')(r.v / cap)}x current`);
   svg.attr('role', 'img').attr('aria-label', 'Current market cap against implied market cap at the $CARDS revenue yield');
 }
 
-const MULT_WINS = { break_5d: 'Last 5 days', break_1d: 'Last full day', break_launch: 'Since launch' };
+const MULT_WINS = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
 
 // Gentle tilt on the main slab when pointed at.
 const slab = document.getElementById('slab-break');

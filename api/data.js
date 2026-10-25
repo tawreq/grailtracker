@@ -55,7 +55,7 @@ function computeAll(raw) {
   const ratios = [
     row('cards_30d', 'Collector Crypt, 30 days', cardsCap, Number(raw.cardsVolume.total30d) / 30, Number(raw.cardsRevenue.total30d) / 30),
     row('break_launch', 'Grail Break, since launch', breakCap, avg(full, 'volume'), avg(full, 'revenue')),
-    row('break_5d', 'Grail Break, last 5 days', breakCap, avg(full.slice(-5), 'volume'), avg(full.slice(-5), 'revenue')),
+    row('break_7d', 'Grail Break, last 7 days', breakCap, avg(full.slice(-7), 'volume'), avg(full.slice(-7), 'revenue')),
     row('break_1d', 'Grail Break, last full day', breakCap, avg(full.slice(-1), 'volume'), avg(full.slice(-1), 'revenue'))
   ];
   const cardsMult = ratios[0].cap_to_revenue;
@@ -66,9 +66,9 @@ function computeAll(raw) {
     return { key: r.key, label: r.label, net_day: r.net_day, market_cap: r.market_cap, implied_cap: cap, upside: cap / r.market_cap, implied_price: breakPrice * cap / r.market_cap };
   });
 
-  const trailing = full.slice(4).map((d, i) => {
-    const n = avg(full.slice(i, i + 5), 'revenue');
-    return { day: d.day, net_5d: n, cap_to_revenue: breakCap / (n * 365) };
+  const trailing = full.slice(6).map((d, i) => {
+    const n = avg(full.slice(i, i + 7), 'revenue');
+    return { day: d.day, net_7d: n, cap_to_revenue: breakCap / (n * 365) };
   });
 
   // Buybacks and burns, oldest first, with a running total of BREAK burned.
@@ -96,13 +96,13 @@ function computeAll(raw) {
   // history divides each day's running revenue by today's counts: a lower bound for earlier days.
   const users = Number(gb.users) || 0, buyers = Number(gb.buyers) || 0;
   const per = (v, n) => n > 0 ? v / n : null;
-  const net5 = ratios.find(r => r.key === 'break_5d').net_day;
+  const net7 = ratios.find(r => r.key === 'break_7d').net_day;
   const arpu = {
     users, buyers,
     arpu: per(Number(gb.revenue), users),
     arppu: per(Number(gb.revenue), buyers),
-    arpu_annual: per(net5 * 365, users),
-    arppu_annual: per(net5 * 365, buyers),
+    arpu_annual: per(net7 * 365, users),
+    arppu_annual: per(net7 * 365, buyers),
     volume_per_buyer: per(Number(gb.volume), buyers),
     conversion: per(buyers, users),
     series: cumulative.map(d => ({ day: d.day, partial: d.partial, arpu: per(d.revenue, users), arppu: per(d.revenue, buyers) })),
