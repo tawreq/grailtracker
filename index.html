@@ -370,6 +370,7 @@ const F = {
   yld: v => d3.format('.0%')(v)
 };
 const yieldOf = r => 1 / r.cap_to_revenue;
+const usdM = v => '$' + d3.format(',.2f')(v / 1e6) + 'M';
 const day = d => d3.utcFormat('%b %-d')(new Date(d));
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -416,7 +417,7 @@ function render() {
   const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
   document.getElementById('tags').replaceChildren(
     tag('Price', F.price(D.breakPrice)),
-    tag('Implied at $CARDS yield', F.price(I.break_5d.implied_price)),
+    tag('Implied market cap at $CARDS yield', usdM(I.break_5d.implied_cap)),
     tag('Liquidity', D.liquidity ? F.usd(D.liquidity) : '–'));
 
   const stats = [
@@ -455,8 +456,8 @@ function render() {
   const names = { break_5d: 'Last 5 days', break_1d: 'Last full day', break_launch: 'Since launch' };
   document.getElementById('ptags').replaceChildren(...order.filter(k => I[k]).map(k => {
     const r = I[k], t = el('div', 'ptag' + (k === 'break_5d' ? ' hot' : ''));
-    const u = el('div', 'u'); u.append(el('b', '', F.times(r.upside)), ` today's price, ${F.usd(r.implied_cap)} market cap`);
-    t.append(el('div', 'w', `${names[k]}: ${F.usd(r.net_day)} net a day`), el('div', 'p', F.price(r.implied_price)), u);
+    const u = el('div', 'u'); u.append(el('b', '', F.times(r.upside)), ` current market cap of ${usdM(r.market_cap)}`);
+    t.append(el('div', 'w', `${names[k]}: ${F.usd(r.net_day)} net revenue per day`), el('div', 'p', usdM(r.implied_cap)), u);
     return t;
   }));
   document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {

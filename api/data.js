@@ -63,7 +63,7 @@ function computeAll(raw) {
 
   const implied = ratios.slice(1).map(r => {
     const cap = r.net_day * 365 * cardsMult;
-    return { key: r.key, label: r.label, net_day: r.net_day, implied_cap: cap, upside: cap / r.market_cap, implied_price: breakPrice * cap / r.market_cap };
+    return { key: r.key, label: r.label, net_day: r.net_day, market_cap: r.market_cap, implied_cap: cap, upside: cap / r.market_cap, implied_price: breakPrice * cap / r.market_cap };
   });
 
   const trailing = full.slice(4).map((d, i) => {
