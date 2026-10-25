@@ -79,8 +79,9 @@ function computeAll(raw) {
     .filter(b => b.time && isFinite(b.burned))
     .sort((a, z) => new Date(a.time) - new Date(z.time))
     .map(b => { runBurned += b.burned; runUsd += b.usd; return { ...b, total_burned: runBurned, total_usd: runUsd }; });
-  // Total supply from DexScreener (market cap / price); pump.fun tokens launch with 1B.
-  const supply = breakPrice > 0 && isFinite(breakCap / breakPrice) ? breakCap / breakPrice : 1e9;
+  // Share burned is measured against the original 1B launch supply, as Grail Break reports it
+  // (DexScreener's supply already has burned tokens taken out).
+  const supply = 1e9;
   const bySource = {};
   burns.forEach(b => { const s = bySource[b.source] || (bySource[b.source] = { source: b.source, kind: b.kind, count: 0, usd: 0, burned: 0 }); s.count++; s.usd += b.usd; s.burned += b.burned; });
   // Buyback USD by Eastern day, to line up with the daily revenue bars.
