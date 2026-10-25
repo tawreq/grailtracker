@@ -183,7 +183,7 @@ tr.cards td { color: var(--haze); }
 .prod .num { text-align: right; font-variant-numeric: tabular-nums; }
 .prod .num small { display: block; color: var(--haze); font-size: .7rem; }
 .prod.head { color: var(--haze); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
-#dots { margin: 6px 0 16px; }
+#dots { margin: 6px 0 16px; min-height: 250px; }
 .mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .mini > div { border-top: 1px solid var(--rail); padding-top: 10px; }
 .mini .n { font-family: var(--display); font-weight: 700; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -240,15 +240,15 @@ footer p { margin: 0 0 6px; }
     <div class="slabs" id="slabs">
       <div class="slab main" id="slab-break">
         <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 5 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">revenue yield</div></div></div>
-        <div class="card"><div class="big" id="big-break">–</div><div class="cap">A year of net revenue as a share of market cap</div></div>
+        <div class="card"><div class="big" id="big-break">–</div><div class="cap">Annualized net revenue / market cap</div></div>
       </div>
       <div class="slab ref">
         <div class="label"><div><div class="who">Collector Crypt</div><div class="what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">revenue yield</div></div></div>
-        <div class="card"><div class="big" id="big-cards">–</div><div class="cap">The benchmark</div></div>
+        <div class="card"><div class="big" id="big-cards">–</div><div class="cap">Benchmark</div></div>
       </div>
     </div>
     <div class="pitch">
-      <h1><span class="x" id="h-x">–</span> the revenue per dollar of market cap</h1>
+      <h1><span class="x" id="h-x">–</span> the revenue yield of $CARDS</h1>
       <p id="pitch">Fetching Grail Break's platform numbers, DexScreener prices and DefiLlama data.</p>
       <div class="tags" id="tags"></div>
     </div>
@@ -258,7 +258,7 @@ footer p { margin: 0 0 6px; }
 
   <section aria-labelledby="h-platform">
     <div class="band">
-      <h2 id="h-platform">Every pack ripped, <span class="x">every buyback burned</span></h2>
+      <h2 id="h-platform">Platform metrics</h2>
       <p id="platform-sub">Grail Break's own platform numbers since launch.</p>
     </div>
     <div class="kpis" id="kpis"></div>
@@ -266,53 +266,53 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
-    <p class="sub">Eastern-time days since launch. Revenue jumped when $BREAK began trading on Oct 16; the faded bars are today so far.</p>
+    <p class="sub">Eastern-time days since launch. Net revenue includes $BREAK trading fees from Oct 16, when the token began trading. Faded bars show the current partial day.</p>
     <div class="chart" id="daily"></div>
   </section>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-cumul">
       <h2 id="h-cumul">Volume and revenue, running total</h2>
-      <p class="sub">Everything since launch, added up day by day. The last point is today so far.</p>
+      <p class="sub">Cumulative totals since launch. The last point includes the current partial day.</p>
       <div class="chart" id="cumul"></div>
     </section>
     <section class="panel" aria-labelledby="h-burnline">
       <h2 id="h-burnline">$BREAK burned, running total</h2>
-      <p class="sub">Every buyback since launch. Dot size is the USD spent; the right axis is the share of total supply gone.</p>
+      <p class="sub">Cumulative $BREAK burned per buyback. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
       <div class="chart" id="burnline"></div>
     </section>
   </div>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-trail">
-      <h2 id="h-trail">Revenue yield keeps climbing</h2>
-      <p class="sub">Annualized net revenue from each day's trailing 5 days, as a share of current market cap. Higher means more revenue for every dollar of market cap.</p>
+      <h2 id="h-trail">Trailing 5-day revenue yield</h2>
+      <p class="sub">Annualized net revenue from each day's trailing 5 days, as a share of current market cap. The dashed line is the $CARDS 30-day figure.</p>
       <div class="chart" id="trail"></div>
     </section>
     <section class="panel" aria-labelledby="h-vs">
-      <h2 id="h-vs">$BREAK against $CARDS</h2>
-      <p class="sub">$BREAK's last 5 full days against Collector Crypt's last 30. Each pair has its own scale.</p>
+      <h2 id="h-vs">$BREAK vs. $CARDS</h2>
+      <p class="sub">$BREAK, last 5 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
       <div class="versus" id="versus"></div>
     </section>
   </div>
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-implied">
-    <h2 id="h-implied">What $BREAK would be worth at the $CARDS yield</h2>
-    <p class="sub">The market cap at which each window's annualized net revenue would give $BREAK the same revenue yield as $CARDS today.</p>
+    <h2 id="h-implied">Implied valuation at the $CARDS revenue yield</h2>
+    <p class="sub">Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield. Illustrative only.</p>
     <div class="tagsrow" id="ptags"></div>
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-mix">
-      <h2 id="h-mix">Where the volume comes from</h2>
-      <p class="sub">Since launch. Sell-backs are cards sold back for USDC, so about half of volume is money flowing back out.</p>
+      <h2 id="h-mix">Volume by product</h2>
+      <p class="sub">Since launch. Sell-backs are cards sold back for USDC and account for roughly half of volume (outflow).</p>
       <div class="mix" id="mix"></div>
       <div class="prods" id="prods"></div>
     </section>
     <section class="panel" aria-labelledby="h-people">
-      <h2 id="h-people">Who's ripping</h2>
-      <p class="sub" id="people-sub">Each dot is a registered user; the bright ones have bought.</p>
+      <h2 id="h-people">Registered users and buyers</h2>
+      <p class="sub" id="people-sub">Registered users against users with at least one purchase.</p>
       <div id="dots"></div>
       <div class="mini" id="peoplestats"></div>
     </section>
@@ -328,8 +328,8 @@ footer p { margin: 0 0 6px; }
   </section>
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-furnace">
-    <h2 id="h-furnace">The burn</h2>
-    <p class="sub">The hourly buy and burn from $BREAK trading fees, plus Pump.fun's one-time graduation boost on the pool.</p>
+    <h2 id="h-furnace">Buybacks and burns</h2>
+    <p class="sub">Sources: the recurring buy and burn funded by $BREAK trading fees, and Pump.fun's one-time graduation boost.</p>
     <div class="furnace">
       <div>
         <div id="gauge"></div>
@@ -347,13 +347,13 @@ footer p { margin: 0 0 6px; }
       <h2 id="h-ledger" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Buyback ledger</h2>
       <div class="chips" id="chips" role="group" aria-label="Filter buybacks by source"></div>
     </div>
-    <p class="sub" id="ledger-sub">Every buyback is a Solana transaction you can open on Solscan.</p>
+    <p class="sub" id="ledger-sub">Each buyback is a Solana transaction, linked to Solscan.</p>
     <div class="chart" id="ledgerviz"></div>
     <div class="ledger"><table><thead><tr><th>Time (ET)</th><th>Source</th><th>$BREAK burned</th><th>USD</th><th>Running total</th><th>Tx</th></tr></thead><tbody id="ledger"></tbody></table></div>
   </section>
 
   <footer>
-    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs ripped, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -411,8 +411,8 @@ function render() {
   if (first && !reduce) document.getElementById('slab-break').classList.add('shine');
 
   const pitch = document.getElementById('pitch'); pitch.replaceChildren();
-  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, a year of $BREAK\'s net revenue at its last-five-day pace would equal ', el('b', '', F.yld(yieldOf(b))),
-    ' of its market cap. Collector Crypt, the platform it runs on, earns ', el('b', '', F.yld(yieldOf(c))), '.');
+  pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK\'s annualized net revenue (last 5 full days) equals ', el('b', '', F.yld(yieldOf(b))),
+    ' of market cap. The equivalent figure for Collector Crypt ($CARDS, last 30 days) is ', el('b', '', F.yld(yieldOf(c))), '.');
   const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
   document.getElementById('tags').replaceChildren(
     tag('Price', F.price(D.breakPrice)),
@@ -502,7 +502,7 @@ function drawDaily(rows) {
   if (x(launch) !== undefined) {
     const lx = x(launch) - x.step() * x.padding() / 2;
     svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--haze)').attr('stroke-opacity', .5).attr('stroke-dasharray', '4 4');
-    svg.append('text').attr('x', lx + 8).attr('y', rTop - 10).attr('fill', 'var(--haze)').text('$BREAK starts trading');
+    svg.append('text').attr('x', lx + 8).attr('y', rTop - 10).attr('fill', 'var(--haze)').text('$BREAK trading begins');
   }
   const tip = tipFor(box);
   const over = (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), [`Volume ${F.usd(d.volume)}`, `Net revenue ${F.usd(d.revenue)}`]); };
@@ -585,7 +585,7 @@ function renderKpis(D, colorOf) {
   const sell = P['Card sell-backs'] || { volume: 0, count: 0 };
   const pulls = D.products.filter(p => p.product !== 'Card sell-backs' && p.product !== 'Break boosts').sort((a, z) => z.count - a.count);
   const pullSpend = d3.sum(pulls, p => p.volume), paid = T.volume - sell.volume;
-  document.getElementById('platform-sub').textContent = `${usd0(T.volume)} of packs, seats and sell-backs, ${F.int(T.packs_ripped)} packs ripped, and ${usd0(T.buyback_usd)} of $BREAK bought back and burned: ${d3.format('.2%')(T.burned_share)} of the supply, gone for good.`;
+  document.getElementById('platform-sub').textContent = `Since launch: ${usd0(T.volume)} volume across packs, seats and sell-backs; ${F.int(T.packs_ripped)} packs opened; ${usd0(T.buyback_usd)} of $BREAK bought back and burned (${d3.format('.2%')(T.burned_share)} of supply).`;
 
   const tile = (k, n, s, viz, hot) => { const t = el('div', 'kpi' + (hot ? ' hot' : '')); t.append(el('div', 'k', k), el('div', 'n', n), s); const v = el('div', 'viz'); if (viz) v.append(viz); t.append(v); return t; };
 
@@ -603,7 +603,7 @@ function renderKpis(D, colorOf) {
     grow(bars, { y: d => y(d.revenue), height: d => H - y(d.revenue) }, 400); }
   const rk = el('div', 'segkey'); rk.append(el('span', '', day(D.daily[0].day)), el('span', '', 'Today')); rViz.append(rk);
 
-  // Packs ripped: pulls by product.
+  // Packs opened: pulls by product.
   const pViz = el('div'); pViz.append(segBar(pulls.map(p => ({ v: p.count, c: colorOf(p), title: `${p.product}: ${F.int(p.count)}` }))));
   const pk = el('div', 'segkey'); pulls.slice(0, 3).forEach(p => { const s = el('span'); s.append(p.product.replace('Gacha packs', 'Gacha').replace('Break seats', 'Breaks') + ' ', el('b', '', tok(p.count))); pk.append(s); }); pViz.append(pk);
 
@@ -627,8 +627,8 @@ function renderKpis(D, colorOf) {
 
   document.getElementById('kpis').replaceChildren(
     tile('Volume', usd0(T.volume), rich([[F.int(T.sales)], ' packs and seats, ', [F.int(T.sellbacks)], ' sell-backs']), vViz),
-    tile('Net revenue', usd0(T.revenue), rich([[d3.format('.1%')(T.revenue / T.volume)], ' of volume kept as fees']), rViz),
-    tile('Packs ripped', F.int(T.packs_ripped), rich(['Avg ', [F.usd(T.card_value_pulled / T.packs_ripped)], ' of card value per pull']), pViz),
+    tile('Net revenue', usd0(T.revenue), rich([[d3.format('.1%')(T.revenue / T.volume)], ' of volume retained as fees']), rViz),
+    tile('Packs opened', F.int(T.packs_ripped), rich(['Avg ', [F.usd(T.card_value_pulled / T.packs_ripped)], ' of card value per pack']), pViz),
     tile('Card value pulled', usd0(T.card_value_pulled), rich([[d3.format('.0%')(T.card_value_pulled / pullSpend)], ' of pull spend returned as cards']), cViz),
     tile('Bought back', usd0(T.buyback_usd), rich([[F.int(T.buyback_count)], ' buybacks, ', [d3.format('.0%')(T.buyback_usd / T.revenue)], ' of net revenue']), bViz, true)
   );
@@ -649,20 +649,24 @@ function renderProducts(prods, colorOf) {
 function renderPeople(D) {
   const T = D.totals, users = T.users || 0, buyers = T.buyers || 0, box = document.getElementById('dots');
   box.replaceChildren();
-  document.getElementById('people-sub').textContent = `${F.int(users)} registered users, ${F.int(buyers)} of whom have bought. Each dot is one user; the bright ones are buyers.`;
-  const W = Math.max(box.clientWidth, 260), cols = W < 420 ? 15 : 25, gap = W / cols, r = Math.min(gap * .36, 9), rowsN = Math.ceil(users / cols), H = rowsN * gap;
-  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-d', false);
-  const dots = svg.selectAll('circle').data(d3.range(users)).join('circle').attr('cx', i => (i % cols) * gap + gap / 2).attr('cy', i => Math.floor(i / cols) * gap + gap / 2)
-    .attr('fill', i => i < buyers ? css('--gold') : 'rgba(158,165,214,.22)');
-  dots.filter(i => i < buyers).attr('fill', (i) => d3.interpolateRgb(css('--cyan'), css('--gold'))((i % cols) / (cols - 1)));
-  if (first && !reduce) dots.attr('r', 0).transition().duration(400).delay(i => 200 + i * 6).attr('r', r); else dots.attr('r', r);
-  svg.attr('role', 'img').attr('aria-label', `${buyers} of ${users} users have bought`);
+  document.getElementById('people-sub').textContent = `Registered users against users with at least one purchase, since launch. Conversion: ${d3.format('.1%')(buyers / users)}.`;
+  const W = Math.max(box.clientWidth, 260), H = 250, m = { l: 44, r: 8, t: 30, b: 30 };
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-d', true);
+  const rows = [{ k: 'Registered users', v: users, fill: css('--volume') }, { k: 'Buyers', v: buyers, fill: 'url(#holo-d)' }];
+  const x = d3.scaleBand(rows.map(r => r.k), [m.l, W - m.r]).padding(.32), y = d3.scaleLinear([0, users], [H - m.b, m.t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(4)).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d3.format(','));
+  grow(svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', r => x(r.k)).attr('width', x.bandwidth()).attr('rx', 6).attr('fill', r => r.fill).attr('y', H - m.b).attr('height', 0), { y: r => y(r.v), height: r => H - m.b - y(r.v) }, 300);
+  svg.append('g').selectAll('text').data(rows).join('text').attr('x', r => x(r.k) + x.bandwidth() / 2).attr('y', r => y(r.v) - 8).attr('text-anchor', 'middle').attr('fill', 'var(--ink)').attr('font-weight', 600).text(r => F.int(r.v));
+  svg.append('g').selectAll('text').data(rows).join('text').attr('x', r => x(r.k) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(r => r.k);
+  svg.append('text').attr('x', x('Buyers') + x.bandwidth() / 2).attr('y', y(buyers) + 18).attr('text-anchor', 'middle').attr('fill', 'var(--night)').attr('font-size', 11).attr('font-weight', 600).text(`${d3.format('.1%')(buyers / users)} of registered`);
+  svg.attr('role', 'img').attr('aria-label', `Bar chart: ${users} registered users, ${buyers} buyers`);
   const paidVol = T.volume - (D.products.find(p => p.product === 'Card sell-backs') || { volume: 0 }).volume;
   const stat = (n, l) => { const d = el('div'); d.append(el('div', 'n', n), el('div', 'l', l)); return d; };
   document.getElementById('peoplestats').replaceChildren(
-    stat(d3.format('.0%')(buyers / users), 'of users have bought'),
-    stat(F.int(T.breaks_done), 'breaks completed'),
-    stat(F.usd(paidVol / buyers), 'bought per buyer'));
+    stat(d3.format('.1%')(buyers / users), 'Conversion, users to buyers'),
+    stat(F.int(T.breaks_done), 'Breaks completed'),
+    stat(F.usd(paidVol / buyers), 'Purchases per buyer'));
 }
 
 function renderBurn(D) {
@@ -701,7 +705,7 @@ function drawGauge(share, burned, supply) {
   const ticks = d3.range(0, maxShare + 1e-9, maxShare <= .1 ? .02 : .05);
   g.selectAll('text.tk').data(ticks).join('text').attr('class', 'tk').attr('x', d => Math.sin(ang(d)) * (R + 16)).attr('y', d => -Math.cos(ang(d)) * (R + 16) + 4).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').attr('font-size', 11).text(d3.format('.0%'));
   g.append('text').attr('text-anchor', 'middle').attr('y', -28).attr('fill', 'var(--ink)').attr('font-family', 'var(--display)').attr('font-weight', 900).attr('font-size', 64).text(d3.format('.2%')(share));
-  g.append('text').attr('text-anchor', 'middle').attr('y', 2).attr('fill', 'var(--haze)').attr('font-size', 13).text('of total supply burned');
+  g.append('text').attr('text-anchor', 'middle').attr('y', 2).attr('fill', 'var(--haze)').attr('font-size', 13).text('of original supply burned');
   g.append('text').attr('text-anchor', 'middle').attr('y', 34).attr('fill', 'var(--ink)').attr('font-size', 13).attr('font-weight', 600).text(`${tok(burned)} of ${tok(supply)} $BREAK`);
   svg.attr('role', 'img').attr('aria-label', `${d3.format('.2%')(share)} of total supply burned`);
 }
@@ -799,7 +803,7 @@ function drawBurnline(burns, supply) {
 function drawLedger() {
   const D = DATA; if (!D || !D.burns) return;
   const rows = D.burns.filter(b => LEDGER === 'all' || b.kind === LEDGER), supply = D.supply;
-  document.getElementById('ledger-sub').textContent = `${F.int(rows.length)} buybacks · ${F.usd(d3.sum(rows, b => b.usd))} · ${tok(d3.sum(rows, b => b.burned))} $BREAK burned. Newest first; each links to Solscan.`;
+  document.getElementById('ledger-sub').textContent = `${F.int(rows.length)} buybacks · ${F.usd(d3.sum(rows, b => b.usd))} · ${tok(d3.sum(rows, b => b.burned))} $BREAK burned. Newest first.`;
   const box = document.getElementById('ledgerviz'); box.querySelectorAll('svg').forEach(s => s.remove());
   const W = Math.max(box.clientWidth, 280), H = 220, m = { l: 48, r: 10, t: 14, b: 26 };
   const svg = svgIn(box, W, H);
