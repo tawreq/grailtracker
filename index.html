@@ -255,23 +255,21 @@ footer p { margin: 0 0 6px; }
     </div>
   </section>
 
-  <section class="rail" id="rail" aria-label="Key ratios"></section>
-
-  <section class="panel" style="margin-bottom:clamp(36px,6vw,72px)" aria-labelledby="h-implied">
-    <h2 id="h-implied">Implied valuation at the $CARDS revenue yield</h2>
-    <p class="sub" id="implied-sub">Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield.</p>
-    <div class="chart" id="impliedviz"></div>
-    <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
-    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
-  </section>
-
-
-  <section aria-labelledby="h-platform">
+  <section style="margin:clamp(36px,6vw,72px) 0" aria-labelledby="h-platform">
     <div class="band">
       <h2 id="h-platform">Platform metrics</h2>
       <p id="platform-sub">Grail Break's own platform numbers since launch.</p>
     </div>
     <div class="kpis" id="kpis"></div>
+    <div class="rail" id="rail" role="group" aria-label="Key ratios" style="margin:0"></div>
+  </section>
+
+  <section class="panel" style="margin-bottom:20px" aria-labelledby="h-implied">
+    <h2 id="h-implied">Implied valuation at the $CARDS revenue yield</h2>
+    <p class="sub" id="implied-sub">Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield.</p>
+    <div class="chart" id="impliedviz"></div>
+    <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
+    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 
   <section class="panel" aria-labelledby="h-daily">
@@ -305,7 +303,6 @@ footer p { margin: 0 0 6px; }
       <div class="versus" id="versus"></div>
     </section>
   </div>
-
 
   <div class="pair">
     <section class="panel" aria-labelledby="h-mix">
