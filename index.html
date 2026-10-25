@@ -42,6 +42,8 @@ a { color: var(--cyan); }
 .brand { font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: .01em; }
 .brand span { color: var(--haze); font-weight: 500; }
 .live { display: flex; align-items: center; gap: 8px; color: var(--haze); font-size: .875rem; }
+.topright { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
+.basis { display: flex; align-items: center; gap: 10px; color: var(--haze); font-size: .875rem; }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(127,227,240,.6); }
 .live.on i { animation: pulse 2.4s ease-out infinite; }
 .live.bad i { background: var(--label-red); }
@@ -234,7 +236,10 @@ footer p { margin: 0 0 6px; }
 <div class="page">
   <header class="top">
     <div class="brand">Grail Break <span>ratio tracker</span></div>
-    <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
+    <div class="topright">
+      <div class="basis"><span>$CARDS valuation</span><div class="chips" id="basischips" role="group" aria-label="$CARDS valuation basis"></div></div>
+      <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
+    </div>
   </header>
 
   <section class="hero" aria-label="Valuation summary">
@@ -244,7 +249,7 @@ footer p { margin: 0 0 6px; }
         <div class="card"><div class="big" id="big-break">–</div><div class="cap">Annualized net revenue / market cap</div></div>
       </div>
       <div class="slab ref">
-        <div class="label"><div><div class="who">Collector Crypt</div><div class="what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">revenue yield</div></div></div>
+        <div class="label"><div><div class="who">Collector Crypt</div><div class="what" id="cards-what">$CARDS, 30 days</div></div><div><div class="grade" id="g-cards">–</div><div class="gname">revenue yield</div></div></div>
         <div class="card"><div class="big" id="big-cards">–</div><div class="cap">Benchmark</div></div>
       </div>
     </div>
@@ -302,7 +307,7 @@ footer p { margin: 0 0 6px; }
     </section>
     <section class="panel" aria-labelledby="h-vs">
       <h2 id="h-vs">$BREAK vs. $CARDS</h2>
-      <p class="sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
+      <p class="sub" id="vs-sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
       <div class="versus" id="versus"></div>
     </section>
   </div>
@@ -357,7 +362,7 @@ footer p { margin: 0 0 6px; }
   </section>
 
   <footer>
-    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices and market caps come from DexScreener; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch at the top chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -402,8 +407,29 @@ function holoDefs(svg, id, vertical) {
   [['0%', css('--cyan')], ['50%', css('--violet')], ['100%', css('--gold')]].forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c));
 }
 
+/* $CARDS valuation basis: circulating market cap or fully diluted value. Applies to every $CARDS-dependent figure. */
+let CARDS_BASIS = 'mc';
+try { if (localStorage.getItem('cardsBasis') === 'fdv') CARDS_BASIS = 'fdv'; } catch (e) {}
+const CAP_WORD = () => CARDS_BASIS === 'fdv' ? 'FDV' : 'market cap';
+function viewData() {
+  if (!DATA) return null;
+  const set = DATA.cards_basis && DATA.cards_basis[CARDS_BASIS];
+  return set ? { ...DATA, ratios: set.ratios, implied: set.implied, cardsCap: set.cardsCap } : DATA;
+}
+function renderBasisChips() {
+  const box = document.getElementById('basischips'); if (!box) return;
+  const has = DATA && DATA.cards_basis;
+  box.replaceChildren(...[['mc', 'Market cap'], ['fdv', 'FDV']].map(([k, t]) => {
+    const b = el('button', 'chip', t); b.type = 'button'; b.disabled = !has; b.setAttribute('aria-pressed', String(CARDS_BASIS === k));
+    if (has) b.title = `${t}: ${F.usd(DATA.cards_basis[k].cardsCap)}`;
+    b.onclick = () => { if (CARDS_BASIS === k) return; CARDS_BASIS = k; try { localStorage.setItem('cardsBasis', k); } catch (e) {} render(); };
+    return b;
+  }));
+}
+
 function render() {
-  const D = DATA; if (!D) return;
+  const D = viewData(); if (!D) return;
+  renderBasisChips();
   CUT = windowStart(D.daily);
   const R = Object.fromEntries(D.ratios.map(r => [r.key, r]));
   const I = Object.fromEntries(D.implied.map(r => [r.key, r]));
@@ -418,7 +444,9 @@ function render() {
 
   const pitch = document.getElementById('pitch'); pitch.replaceChildren();
   pitch.append('At a ', el('b', '', F.usd(b.market_cap)), ' market cap, $BREAK\'s annualized net revenue (last 7 full days) equals ', el('b', '', F.yld(yieldOf(b))),
-    ' of market cap. The equivalent figure for Collector Crypt ($CARDS, last 30 days) is ', el('b', '', F.yld(yieldOf(c))), '.');
+    ' of market cap. The equivalent figure for Collector Crypt ($CARDS, last 30 days, on ' + CAP_WORD() + ') is ', el('b', '', F.yld(yieldOf(c))), '.');
+  document.getElementById('cards-what').textContent = `$CARDS, 30 days, ${CAP_WORD()}`;
+  document.getElementById('vs-sub').textContent = `$BREAK, last 7 full days; Collector Crypt, last 30 days, using its ${CAP_WORD()}. Each pair has its own scale.`;
   const tag = (k, v) => { const t = el('div', 'tag'); t.append(k + ' ', el('b', '', v)); return t; };
   document.getElementById('tags').replaceChildren(
     tag('Price', F.price(D.breakPrice)),
@@ -459,7 +487,7 @@ function render() {
 
   document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {
     const tr = el('tr', r.key === 'cards_30d' ? 'cards' : '');
-    [r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
+    [r.key === 'cards_30d' ? `${r.label} (${CAP_WORD()})` : r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
     return tr;
   }));
 
@@ -915,12 +943,12 @@ function drawImplied(D) {
   const I = Object.fromEntries(keys.map(k => [k, { key: k, implied_cap: impliedCap(R[k], c, IMPL_BASIS) }]));
   document.getElementById('implchips').replaceChildren(...Object.keys(IMPL_BASES).map(k => {
     const b = el('button', 'chip', IMPL_BASES[k].label); b.type = 'button'; b.setAttribute('aria-pressed', String(IMPL_BASIS === k));
-    b.onclick = () => { IMPL_BASIS = k; drawImplied(DATA); }; return b;
+    b.onclick = () => { IMPL_BASIS = k; drawImplied(viewData()); }; return b;
   }));
   const f2 = d3.format('.2f'), b7 = R.break_7d;
   const sub = {
-    gross: `Market cap at which each window's annualized volume would trade at the $CARDS market cap / volume multiple (${d3.format('.3f')(1 / (c.gross_to_cap * 365))}x). $BREAK currently trades at ${d3.format('.3f')(1 / (b7.gross_to_cap * 365))}x annualized volume (last 7 days).`,
-    net: `Market cap at which each window's annualized net revenue would trade at the $CARDS market cap / net revenue multiple (${f2(c.cap_to_revenue)}x). $BREAK currently trades at ${f2(b7.cap_to_revenue)}x (last 7 days).`
+    gross: `Market cap at which each window's annualized volume would trade at the $CARDS ${CAP_WORD()} / volume multiple (${d3.format('.3f')(1 / (c.gross_to_cap * 365))}x). $BREAK currently trades at ${d3.format('.3f')(1 / (b7.gross_to_cap * 365))}x annualized volume (last 7 days).`,
+    net: `Market cap at which each window's annualized net revenue would trade at the $CARDS ${CAP_WORD()} / net revenue multiple (${f2(c.cap_to_revenue)}x). $BREAK currently trades at ${f2(b7.cap_to_revenue)}x (last 7 days).`
   }[IMPL_BASIS];
   document.getElementById('implied-sub').textContent = sub + ' $CARDS figures use the last 30 days.';
   const names = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };

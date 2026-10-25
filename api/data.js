@@ -41,6 +41,7 @@ function computeAll(raw) {
   const breakPrice = Number(bp.priceUsd);
   const breakCap = Number(bp.marketCap || bp.fdv);
   const cardsCap = Number(cp.marketCap || cp.fdv);
+  const cardsFdv = Number(cp.fdv || cp.marketCap);
 
   const today = easternToday();
   const daily = gb.daily.map(d => ({ day: d.day, volume: Number(d.volume), revenue: Number(d.revenue), partial: d.day >= today }));
@@ -52,19 +53,26 @@ function computeAll(raw) {
     gross_to_cap: g / cap, net_to_cap: n / cap, margin: n / g, cap_to_revenue: cap / (n * 365)
   });
 
-  const ratios = [
-    row('cards_30d', 'Collector Crypt, 30 days', cardsCap, Number(raw.cardsVolume.total30d) / 30, Number(raw.cardsRevenue.total30d) / 30),
-    row('break_launch', 'Grail Break, since launch', breakCap, avg(full, 'volume'), avg(full, 'revenue')),
-    row('break_7d', 'Grail Break, last 7 days', breakCap, avg(full.slice(-7), 'volume'), avg(full.slice(-7), 'revenue')),
-    row('break_1d', 'Grail Break, last full day', breakCap, avg(full.slice(-1), 'volume'), avg(full.slice(-1), 'revenue'))
-  ];
-  const cardsMult = ratios[0].cap_to_revenue;
-  ratios.forEach(r => { r.discount_vs_cards = cardsMult / r.cap_to_revenue; });
-
-  const implied = ratios.slice(1).map(r => {
-    const cap = r.net_day * 365 * cardsMult;
-    return { key: r.key, label: r.label, net_day: r.net_day, market_cap: r.market_cap, implied_cap: cap, upside: cap / r.market_cap, implied_price: breakPrice * cap / r.market_cap };
-  });
+  // Everything that depends on the $CARDS valuation is built twice: once with its
+  // circulating market cap, once with its fully diluted value (FDV).
+  const valuationSet = cardsVal => {
+    const ratios = [
+      row('cards_30d', 'Collector Crypt, 30 days', cardsVal, Number(raw.cardsVolume.total30d) / 30, Number(raw.cardsRevenue.total30d) / 30),
+      row('break_launch', 'Grail Break, since launch', breakCap, avg(full, 'volume'), avg(full, 'revenue')),
+      row('break_7d', 'Grail Break, last 7 days', breakCap, avg(full.slice(-7), 'volume'), avg(full.slice(-7), 'revenue')),
+      row('break_1d', 'Grail Break, last full day', breakCap, avg(full.slice(-1), 'volume'), avg(full.slice(-1), 'revenue'))
+    ];
+    const cardsMult = ratios[0].cap_to_revenue;
+    ratios.forEach(r => { r.discount_vs_cards = cardsMult / r.cap_to_revenue; });
+    const implied = ratios.slice(1).map(r => {
+      const cap = r.net_day * 365 * cardsMult;
+      return { key: r.key, label: r.label, net_day: r.net_day, market_cap: r.market_cap, implied_cap: cap, upside: cap / r.market_cap, implied_price: breakPrice * cap / r.market_cap };
+    });
+    return { cardsCap: cardsVal, ratios, implied };
+  };
+  const mcSet = valuationSet(cardsCap);
+  const fdvSet = valuationSet(cardsFdv);
+  const { ratios, implied } = mcSet;
 
   const trailing = full.slice(6).map((d, i) => {
     const n = avg(full.slice(i, i + 7), 'revenue');
@@ -113,7 +121,8 @@ function computeAll(raw) {
   return {
     updated: new Date().toISOString(),
     grailUpdated: gb.updated || null,
-    breakPrice, breakCap, cardsCap, supply,
+    breakPrice, breakCap, cardsCap, cardsFdv, supply,
+    cards_basis: { mc: mcSet, fdv: fdvSet },
     liquidity: bp.liquidity ? Number(bp.liquidity.usd) : null,
     totals: {
       volume: Number(gb.volume), revenue: Number(gb.revenue),
