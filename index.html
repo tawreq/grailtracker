@@ -903,13 +903,10 @@ function drawArpu(A) {
 let IMPL_BASIS = 'net';
 const IMPL_BASES = {
   gross: { label: 'Gross revenue', metric: r => r.gross_day, unit: 'volume per day' },
-  net: { label: 'Net revenue', metric: r => r.net_day, unit: 'net revenue per day' },
-  margin: { label: 'Net margin on volume', metric: r => r.margin, unit: 'net margin' }
+  net: { label: 'Net revenue', metric: r => r.net_day, unit: 'net revenue per day' }
 };
 function impliedCap(b, c, basis) {
-  if (basis === 'gross') return b.gross_day / c.gross_to_cap;
-  const net = b.net_day / c.net_to_cap;
-  return basis === 'margin' ? net * (b.margin / c.margin) : net;
+  return basis === 'gross' ? b.gross_day / c.gross_to_cap : b.net_day / c.net_to_cap;
 }
 function drawImplied(D) {
   const R = Object.fromEntries(D.ratios.map(r => [r.key, r])), c = R.cards_30d, cap = D.breakCap;
@@ -923,8 +920,7 @@ function drawImplied(D) {
   const f2 = d3.format('.2f'), b7 = R.break_7d;
   const sub = {
     gross: `Market cap at which each window's annualized volume would trade at the $CARDS market cap / volume multiple (${d3.format('.3f')(1 / (c.gross_to_cap * 365))}x). $BREAK currently trades at ${d3.format('.3f')(1 / (b7.gross_to_cap * 365))}x annualized volume (last 7 days).`,
-    net: `Market cap at which each window's annualized net revenue would trade at the $CARDS market cap / net revenue multiple (${f2(c.cap_to_revenue)}x). $BREAK currently trades at ${f2(b7.cap_to_revenue)}x (last 7 days).`,
-    margin: `The net revenue result scaled by $BREAK's net margin divided by $CARDS's (${F.pct(c.margin)}): a higher margin raises the implied multiple, a lower one reduces it. $BREAK margin: ${F.pct(b7.margin)} (last 7 days).`
+    net: `Market cap at which each window's annualized net revenue would trade at the $CARDS market cap / net revenue multiple (${f2(c.cap_to_revenue)}x). $BREAK currently trades at ${f2(b7.cap_to_revenue)}x (last 7 days).`
   }[IMPL_BASIS];
   document.getElementById('implied-sub').textContent = sub + ' $CARDS figures use the last 30 days.';
   const names = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
@@ -932,7 +928,7 @@ function drawImplied(D) {
   document.getElementById('ptags').replaceChildren(...keys.map(k => {
     const r = R[k], t = el('div', 'ptag' + (k === 'break_7d' ? ' hot' : ''));
     const u = el('div', 'u'); u.append(el('b', '', F.times(I[k].implied_cap / cap)), ` current market cap of ${usdM(cap)}`);
-    const m = IMPL_BASIS === 'margin' ? `${F.pct(r.margin)} net margin vs ${F.pct(c.margin)}` : `${F.usd(B.metric(r))} ${B.unit}`;
+    const m = `${F.usd(B.metric(r))} ${B.unit}`;
     t.append(el('div', 'w', `${names[k]}: ${m}`), el('div', 'p', usdM(I[k].implied_cap)), u);
     return t;
   }));
