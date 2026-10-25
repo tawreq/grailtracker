@@ -91,6 +91,23 @@ function computeAll(raw) {
   let cv = 0, cr = 0;
   const cumulative = daily.map(d => { cv += d.volume; cr += d.revenue; return { day: d.day, volume: cv, revenue: cr, partial: d.partial }; });
 
+  // Estimated ARPU. Grail Break only reports today's user and buyer counts, so the
+  // history divides each day's running revenue by today's counts: a lower bound for earlier days.
+  const users = Number(gb.users) || 0, buyers = Number(gb.buyers) || 0;
+  const per = (v, n) => n > 0 ? v / n : null;
+  const net5 = ratios.find(r => r.key === 'break_5d').net_day;
+  const arpu = {
+    users, buyers,
+    arpu: per(Number(gb.revenue), users),
+    arppu: per(Number(gb.revenue), buyers),
+    arpu_annual: per(net5 * 365, users),
+    arppu_annual: per(net5 * 365, buyers),
+    volume_per_buyer: per(Number(gb.volume), buyers),
+    conversion: per(buyers, users),
+    series: cumulative.map(d => ({ day: d.day, partial: d.partial, arpu: per(d.revenue, users), arppu: per(d.revenue, buyers) })),
+    daily: daily.map(d => ({ day: d.day, partial: d.partial, arppu: per(d.revenue, buyers) }))
+  };
+
   const hall = gb.hall || {};
   return {
     updated: new Date().toISOString(),
@@ -103,7 +120,7 @@ function computeAll(raw) {
       packs_ripped: hall.count, card_value_pulled: Number(hall.usd),
       buyback_usd: runUsd, buyback_count: burns.length, burned: runBurned, burned_share: runBurned / supply
     },
-    ratios, implied, trailing, daily, cumulative,
+    ratios, implied, trailing, daily, cumulative, arpu,
     products: (gb.products || []).map(p => ({ product: p.k, volume: Number(p.usd), count: p.n })),
     burns, burn_sources: Object.values(bySource), burn_days: Object.values(burnDays).sort((a, z) => a.day < z.day ? -1 : 1)
   };

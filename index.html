@@ -189,6 +189,17 @@ tr.cards td { color: var(--haze); }
 .mini .n { font-family: var(--display); font-weight: 700; font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .mini .l { color: var(--haze); font-size: .78rem; margin-top: 6px; }
 
+.arpu { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
+.atiles { display: grid; gap: 12px; }
+.atile { border-radius: 16px; padding: 14px 16px; background: var(--vault); border: 1px solid var(--rail); }
+.atile.hot { background: linear-gradient(var(--vault), var(--vault)) padding-box, var(--holo) border-box; border: 1.5px solid transparent; }
+.atile .k { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.atile .n { font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 2.8vw, 2.4rem); line-height: 1; margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
+.atile .s { color: var(--haze); font-size: .8rem; }
+.atile .s b { color: var(--ink); font-weight: 600; }
+#arpuchart { min-height: 400px; }
+@media (max-width: 560px) { .atile .n { font-size: 1.7rem; } }
+
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
 footer p { margin: 0 0 6px; }
@@ -199,7 +210,8 @@ footer p { margin: 0 0 6px; }
   .rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--rail); }
   .stat:nth-child(-n+2) { border-top: 0; }
-  .pair, .tagsrow, .furnace { grid-template-columns: 1fr; }
+  .pair, .tagsrow, .furnace, .arpu { grid-template-columns: 1fr; }
+  .atiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi.hot { grid-column: 1 / -1; }
 }
@@ -305,6 +317,15 @@ footer p { margin: 0 0 6px; }
       <div class="mini" id="peoplestats"></div>
     </section>
   </div>
+
+  <section class="panel" style="margin-top:20px" aria-labelledby="h-arpu">
+    <h2 id="h-arpu">Estimated revenue per user</h2>
+    <p class="sub" id="arpu-sub">Net revenue divided by registered users (ARPU) and by users who have bought (ARPPU).</p>
+    <div class="arpu">
+      <div class="atiles" id="atiles"></div>
+      <div class="chart" id="arpuchart"></div>
+    </div>
+  </section>
 
   <section class="panel" style="margin-top:20px" aria-labelledby="h-furnace">
     <h2 id="h-furnace">The burn</h2>
@@ -457,6 +478,7 @@ function render() {
   drawDaily(D.daily);
   drawTrailing(D.trailing, c.cap_to_revenue);
   if (D.cumulative) drawCumul(D.cumulative);
+  if (D.arpu && D.arpu.arpu !== null) { renderArpu(D.arpu); drawArpu(D.arpu); }
   if (D.burns && D.burns.length) { drawBurnline(D.burns, D.supply); drawLedger(); }
   first = false;
 }
@@ -800,6 +822,60 @@ function drawLedger() {
     tr.append(el('td', '', etTime.format(new Date(b.time))), s, el('td', '', F.int(Math.round(b.burned))), u, el('td', '', `${tok(b.total_burned)} · ${d3.format('.2%')(b.total_burned / supply)}`), tx);
     return tr;
   }));
+}
+
+/* ---------- Estimated ARPU ---------- */
+const usd2 = v => v >= 100 ? d3.format('$,.0f')(v) : d3.format('$,.2f')(v);
+function renderArpu(A) {
+  document.getElementById('arpu-sub').textContent = `Net revenue since launch divided by ${F.int(A.users)} registered users (ARPU) and by the ${F.int(A.buyers)} who have bought (ARPPU). Estimated: net revenue includes $BREAK trading fees, which don't come from platform users, and only today's user counts are published, so the history is a lower bound.`;
+  const t = (k, n, parts, hot) => { const d = el('div', 'atile' + (hot ? ' hot' : '')); d.append(el('div', 'k', k), el('div', 'n', n), rich(parts)); return d; };
+  document.getElementById('atiles').replaceChildren(
+    t('ARPU since launch', usd2(A.arpu), ['Net revenue per registered user']),
+    t('ARPPU since launch', usd2(A.arppu), ['Per buyer; ', [d3.format('.0%')(A.conversion)], ' of users have bought'], true),
+    t('ARPU run rate, per year', usd2(A.arpu_annual), ['Last 5 days annualized; ', [usd2(A.arppu_annual)], ' per buyer']),
+    t('Volume per buyer', usd2(A.volume_per_buyer), ['Packs, seats and sell-backs per buyer'])
+  );
+}
+
+function drawArpu(A) {
+  const box = document.getElementById('arpuchart'); box.querySelectorAll('svg').forEach(s => s.remove());
+  const rows = A.series, dly = A.daily;
+  const W = Math.max(box.clientWidth, 280), H = 400, l = 56, r = 78, cTop = 28, cBot = 250, dTop = 300, dBot = 368;
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-a', false); holoDefs(svg, 'holo-av', true);
+  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(.22), cx = d => x(d.day) + x.bandwidth() / 2;
+  const yc = d3.scaleLinear([0, d3.max(rows, d => d.arppu)], [cBot, cTop]).nice();
+  const yd = d3.scaleLinear([0, d3.max(dly, d => d.arppu)], [dBot, dTop]).nice();
+  [[yc, 4], [yd, 2]].forEach(([y, n]) => {
+    svg.append('g').selectAll('line').data(y.ticks(n)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+    svg.append('g').selectAll('text').data(y.ticks(n)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : d3.format('$,~s')(d));
+  });
+  svg.append('text').attr('x', l).attr('y', cTop - 12).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Running net revenue per user');
+  svg.append('text').attr('x', l).attr('y', dTop - 12).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Net revenue per buyer, each day');
+  const fade = svg.append('defs').append('linearGradient').attr('id', 'fade-a').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
+  fade.append('stop').attr('offset', '0%').attr('stop-color', css('--gold')).attr('stop-opacity', .3); fade.append('stop').attr('offset', '100%').attr('stop-color', css('--gold')).attr('stop-opacity', 0);
+  // The gap between the two lines is the revenue that came from buyers and not the wider user base.
+  svg.append('path').datum(rows).attr('fill', 'url(#fade-a)').attr('d', d3.area(cx, d => yc(d.arpu), d => yc(d.arppu)).curve(d3.curveMonotoneX));
+  const lines = [['arppu', 'url(#holo-a)', 3, null, 'ARPPU (per buyer)'], ['arpu', css('--haze'), 2.5, '5 4', 'ARPU (per user)']];
+  const last = rows[rows.length - 1];
+  let ends = lines.map(([f]) => yc(last[f]) + 4);
+  if (Math.abs(ends[0] - ends[1]) < 30) ends[1] = ends[0] + 30;
+  lines.forEach(([f, stroke, w, dash, name], i) => {
+    const p = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', stroke).attr('stroke-width', w).attr('stroke-linecap', 'round').attr('stroke-dasharray', dash).attr('d', d3.line(cx, d => yc(d[f])).curve(d3.curveMonotoneX));
+    if (first && !reduce && !dash) { const L = p.node().getTotalLength(); p.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(300).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
+    svg.append('circle').attr('cx', cx(last)).attr('cy', yc(last[f])).attr('r', 4.5).attr('fill', i ? css('--haze') : css('--gold'));
+    const t = svg.append('text').attr('x', cx(last) + 10).attr('y', ends[i]).attr('fill', i ? 'var(--haze)' : 'var(--ink)').attr('font-weight', 600);
+    t.append('tspan').text(usd2(last[f])); t.append('tspan').attr('x', cx(last) + 10).attr('dy', 14).attr('font-weight', 400).attr('font-size', 11).attr('fill', 'var(--haze)').text(i ? 'per user' : 'per buyer');
+  });
+  const k = svg.append('g').attr('transform', `translate(${l + 8},${cTop + 10})`).attr('font-size', 11);
+  [['Per buyer', css('--gold'), null], ['Per user', css('--haze'), '4 3']].forEach(([t, c, dash], i) => { const g = k.append('g').attr('transform', `translate(${i * 90},0)`); g.append('line').attr('x1', 0).attr('x2', 18).attr('y1', -4).attr('y2', -4).attr('stroke', c).attr('stroke-width', 2.5).attr('stroke-dasharray', dash); g.append('text').attr('x', 24).attr('fill', 'var(--haze)').text(t); });
+  const bw = Math.min(x.bandwidth(), 40), off = (x.bandwidth() - bw) / 2;
+  grow(svg.append('g').selectAll('rect').data(dly).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 4).attr('fill', 'url(#holo-av)').attr('opacity', d => d.partial ? .45 : 1).attr('y', dBot).attr('height', 0), { y: d => yd(d.arppu), height: d => dBot - yd(d.arppu) }, 500);
+  const step = Math.max(1, Math.ceil(rows.length / Math.floor((W - l - r) / 52)));
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => i % step === 0)).join('text').attr('x', cx).attr('y', H - 10).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => d.partial ? 'Now' : day(d.day));
+  const tip = tipFor(box), guide = svg.append('line').attr('y1', cTop).attr('y2', dBot).attr('stroke', 'var(--haze)').attr('stroke-opacity', 0);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', cTop).attr('height', dBot - cTop).attr('fill', 'transparent')
+    .on('mousemove', (e, d) => { const i = rows.indexOf(d); guide.attr('x1', cx(d)).attr('x2', cx(d)).attr('stroke-opacity', .4); const [px, py] = d3.pointer(e, box); tip.show(px, py, (d.partial ? 'Today so far' : 'Through ' + day(d.day)), [`Per buyer ${usd2(d.arppu)}, per user ${usd2(d.arpu)}`, `That day: ${usd2(dly[i].arppu)} per buyer`]); })
+    .on('mouseleave', () => { tip.hide(); guide.attr('stroke-opacity', 0); });
 }
 
 // Gentle tilt on the main slab when pointed at.
