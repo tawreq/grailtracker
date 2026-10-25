@@ -96,7 +96,7 @@ a { color: var(--cyan); }
 .panel .sub { color: var(--haze); font-size: .875rem; margin: 6px 0 18px; max-width: 60ch; }
 .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
 .chart { position: relative; }
-#daily { min-height: 420px; }
+#daily { min-height: 470px; }
 #impliedviz { min-height: 200px; }
 #trail { min-height: 320px; }
 
@@ -274,7 +274,7 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
-    <p class="sub">Last 7 full days plus today (Eastern time). Each bar is total volume, with net revenue as the lower segment. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees. The faded bar is the current partial day.</p>
+    <p class="sub">Last 7 full days plus today (Eastern time). Volume (top) and net revenue (bottom), each on its own scale. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees. The faded bar is the current partial day.</p>
     <div class="chart" id="daily"></div>
   </section>
 
@@ -488,51 +488,53 @@ function render() {
 }
 
 function drawDaily(rows) {
-  // One bar per day at full volume, split into net revenue (bottom) and the rest of volume (top).
+  // Two panels on a shared day axis: volume bars on top; net revenue bars below, with
+  // net revenue as a share of volume as a line on the lower panel's right axis.
   const box = document.getElementById('daily'); box.querySelectorAll('svg').forEach(s => s.remove());
-  const W = Math.max(box.clientWidth, 300), H = 420, l = 56, r = 52, top = W < 560 ? 66 : 46, bot = 380;
+  const W = Math.max(box.clientWidth, 300), narrow = W < 560, H = 470, l = 56, r = 52;
+  const vTop = 30, vBot = 200, rTop = narrow ? 268 : 250, rBot = 430;
   const svg = svgIn(box, W, H); holoDefs(svg, 'holo-v', true);
-  const data = rows.map(d => ({ ...d, net: Math.min(d.revenue, d.volume), rest: Math.max(d.volume - d.revenue, 0), total: Math.max(d.volume, d.revenue) }));
-  const x = d3.scaleBand(data.map(d => d.day), [l, W - r]).padding(0.22);
-  const bw = Math.min(x.bandwidth(), 44), off = (x.bandwidth() - bw) / 2;
-  const y = d3.scaleLinear([0, d3.max(data, d => d.total)], [bot, top]).nice();
-  svg.append('g').selectAll('line').data(y.ticks(5)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
-  svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
-  const k = svg.append('g').attr('transform', `translate(${l},14)`).attr('font-size', 12);
-  [['Net revenue', 'url(#holo-v)'], ['Rest of volume', css('--volume')]].forEach(([t, c], i) => { const g = k.append('g').attr('transform', `translate(${i * 120},0)`); g.append('rect').attr('width', 12).attr('height', 12).attr('rx', 3).attr('y', -10).attr('fill', c); g.append('text').attr('x', 18).attr('fill', 'var(--haze)').text(t); });
-  { const g = k.append('g').attr('transform', W < 560 ? 'translate(0,20)' : 'translate(240,0)'); g.append('line').attr('x1', 0).attr('x2', 16).attr('y1', -4).attr('y2', -4).attr('stroke', css('--gold')).attr('stroke-width', 2.5); g.append('circle').attr('cx', 8).attr('cy', -4).attr('r', 3).attr('fill', css('--gold')); g.append('text').attr('x', 22).attr('fill', 'var(--haze)').text(W < 560 ? 'Net / volume (right)' : 'Net revenue / volume (right axis)'); }
+  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(0.22);
+  const bw = Math.min(x.bandwidth(), 44), off = (x.bandwidth() - bw) / 2, cx = d => x(d.day) + x.bandwidth() / 2;
+  const yv = d3.scaleLinear([0, d3.max(rows, d => d.volume)], [vBot, vTop]).nice();
+  const yr = d3.scaleLinear([0, d3.max(rows, d => d.revenue)], [rBot, rTop]).nice();
+  const pd = rows.filter(d => d.volume > 0).map(d => ({ ...d, pct: d.revenue / d.volume }));
+  const yp = d3.scaleLinear([0, d3.max(pd, d => d.pct) || 0.01], [rBot, rTop]).nice();
+  [[yv, 4], [yr, 3]].forEach(([y, n]) => {
+    svg.append('g').selectAll('line').data(y.ticks(n)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+    svg.append('g').selectAll('text').data(y.ticks(n)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d => d === 0 ? '$0' : F.usd(d));
+  });
+  svg.append('g').selectAll('text').data(yp.ticks(3)).join('text').attr('x', W - r + 8).attr('y', d => yp(d) + 4).attr('fill', css('--gold')).attr('font-size', 11).text(d3.format('.0%'));
+  svg.append('text').attr('x', l).attr('y', vTop - 12).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Volume');
+  svg.append('text').attr('x', l).attr('y', rTop - (narrow ? 30 : 12)).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Net revenue');
+  { const g = svg.append('g').attr('transform', narrow ? `translate(${l},${rTop - 12})` : `translate(${l + 100},${rTop - 12})`).attr('font-size', 11);
+    g.append('line').attr('x1', 0).attr('x2', 16).attr('y1', -4).attr('y2', -4).attr('stroke', css('--gold')).attr('stroke-width', 2.5);
+    g.append('circle').attr('cx', 8).attr('cy', -4).attr('r', 3).attr('fill', css('--gold'));
+    g.append('text').attr('x', 22).attr('fill', 'var(--haze)').text('Net revenue / volume (right axis)'); }
   const launch = '2026-10-16';
   if (x(launch) !== undefined) {
     const lx = x(launch) - x.step() * x.padding() / 2;
-    svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', top).attr('y2', bot).attr('stroke', 'var(--haze)').attr('stroke-opacity', .5).attr('stroke-dasharray', '4 4');
-    svg.append('text').attr('x', lx + 8).attr('y', top + 4).attr('fill', 'var(--haze)').text('$BREAK trading begins');
+    svg.append('line').attr('x1', lx).attr('x2', lx).attr('y1', vTop).attr('y2', rBot).attr('stroke', 'var(--haze)').attr('stroke-opacity', .5).attr('stroke-dasharray', '4 4');
+    svg.append('text').attr('x', lx + 8).attr('y', vTop + 4).attr('fill', 'var(--haze)').text('$BREAK trading begins');
   }
-  const tip = tipFor(box);
-  const bars = svg.append('g').selectAll('g').data(data).join('g').attr('opacity', d => d.partial ? .45 : 1);
-  const rb = bars.append('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('fill', 'url(#holo-v)');
-  const vb = bars.append('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('fill', css('--volume'));
-  const place = () => {
-    rb.attr('y', d => y(d.net)).attr('height', d => bot - y(d.net));
-    vb.attr('y', d => y(d.net + d.rest)).attr('height', d => y(d.net) - y(d.net + d.rest));
-  };
+  const vb = svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 6).attr('fill', 'var(--volume)').attr('opacity', d => d.partial ? .45 : 1);
+  const rb = svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 6).attr('fill', 'url(#holo-v)').attr('opacity', d => d.partial ? .45 : 1);
   if (first && !reduce) {
-    rb.attr('y', bot).attr('height', 0); vb.attr('y', bot).attr('height', 0);
-    rb.transition().duration(700).delay((d, i) => 300 + i * 40).ease(d3.easeCubicOut).attr('y', d => y(d.net)).attr('height', d => bot - y(d.net));
-    vb.attr('y', d => y(d.net)).transition().duration(900).delay((d, i) => 500 + i * 40).ease(d3.easeCubicOut).attr('y', d => y(d.net + d.rest)).attr('height', d => y(d.net) - y(d.net + d.rest));
-  } else place();
-  // Net revenue as a share of volume: a line on its own right-hand axis.
-  const pd = data.filter(d => d.volume > 0).map(d => ({ ...d, pct: d.revenue / d.volume }));
-  const yp = d3.scaleLinear([0, d3.max(pd, d => d.pct)], [bot, top]).nice();
-  svg.append('g').selectAll('text').data(yp.ticks(5)).join('text').attr('x', W - r + 8).attr('y', d => yp(d) + 4).attr('fill', css('--gold')).attr('font-size', 11).text(d3.format('.0%'));
-  const cx = d => x(d.day) + x.bandwidth() / 2;
+    vb.attr('y', vBot).attr('height', 0).transition().duration(900).delay((d, i) => 300 + i * 40).ease(d3.easeCubicOut).attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume));
+    rb.attr('y', rBot).attr('height', 0).transition().duration(900).delay((d, i) => 500 + i * 40).ease(d3.easeCubicOut).attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue));
+  } else {
+    vb.attr('y', d => yv(d.volume)).attr('height', d => vBot - yv(d.volume));
+    rb.attr('y', d => yr(d.revenue)).attr('height', d => rBot - yr(d.revenue));
+  }
   const pl = svg.append('path').datum(pd).attr('fill', 'none').attr('stroke', css('--gold')).attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('d', d3.line(cx, d => yp(d.pct)));
   if (first && !reduce) { const L = pl.node().getTotalLength(); pl.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(900).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
   svg.append('g').selectAll('circle').data(pd).join('circle').attr('cx', cx).attr('cy', d => yp(d.pct)).attr('r', 4).attr('fill', 'var(--night)').attr('stroke', css('--gold')).attr('stroke-width', 2).attr('opacity', d => d.partial ? .5 : 1);
-  svg.append('g').selectAll('rect').data(data).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', top).attr('height', bot - top).attr('fill', 'transparent')
+  const tip = tipFor(box);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', vTop).attr('height', rBot - vTop).attr('fill', 'transparent')
     .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), [`Volume ${F.usd(d.volume)}`, `Net revenue ${F.usd(d.revenue)} (${d.volume ? d3.format('.1%')(d.revenue / d.volume) : '–'} of volume)`]); })
     .on('mouseleave', () => tip.hide());
-  const step = W < 560 ? 3 : 1;
-  svg.append('g').selectAll('text').data(data.filter((d, i) => i % step === 0)).join('text').attr('x', d => x(d.day) + x.bandwidth() / 2).attr('y', H - 12).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => day(d.day));
+  const step = narrow ? Math.ceil(rows.length / 4) : 1;
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => (rows.length - 1 - i) % step === 0)).join('text').attr('x', cx).attr('y', H - 12).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => d.partial ? 'Today' : day(d.day));
 }
 
 function drawTrailing(rows, refMultiple) {
