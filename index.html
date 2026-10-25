@@ -265,8 +265,11 @@ footer p { margin: 0 0 6px; }
   </section>
 
   <section class="panel" style="margin-bottom:20px" aria-labelledby="h-implied">
-    <h2 id="h-implied">Implied valuation at the $CARDS revenue yield</h2>
-    <p class="sub" id="implied-sub">Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield.</p>
+    <div class="band" style="margin:0">
+      <h2 id="h-implied" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Implied valuation at $CARDS multiples</h2>
+      <div class="chips" id="implchips" role="group" aria-label="Valuation basis"></div>
+    </div>
+    <p class="sub" id="implied-sub"></p>
     <div class="chart" id="impliedviz"></div>
     <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
@@ -454,14 +457,6 @@ function render() {
     row.append(head, bars); return row;
   }));
 
-  const order = ['break_7d', 'break_1d', 'break_launch'];
-  const names = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
-  document.getElementById('ptags').replaceChildren(...order.filter(k => I[k]).map(k => {
-    const r = I[k], t = el('div', 'ptag' + (k === 'break_7d' ? ' hot' : ''));
-    const u = el('div', 'u'); u.append(el('b', '', F.times(r.upside)), ` current market cap of ${usdM(r.market_cap)}`);
-    t.append(el('div', 'w', `${names[k]}: ${F.usd(r.net_day)} net revenue per day`), el('div', 'p', usdM(r.implied_cap)), u);
-    return t;
-  }));
   document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {
     const tr = el('tr', r.key === 'cards_30d' ? 'cards' : '');
     [r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
@@ -904,12 +899,45 @@ function drawArpu(A) {
 }
 
 /* ---------- Current vs implied market cap ---------- */
+/* Implied valuation: $BREAK valued at the multiple $CARDS trades at, on a chosen basis. */
+let IMPL_BASIS = 'net';
+const IMPL_BASES = {
+  gross: { label: 'Gross revenue', metric: r => r.gross_day, unit: 'volume per day' },
+  net: { label: 'Net revenue', metric: r => r.net_day, unit: 'net revenue per day' },
+  margin: { label: 'Net margin on volume', metric: r => r.margin, unit: 'net margin' }
+};
+function impliedCap(b, c, basis) {
+  if (basis === 'gross') return b.gross_day / c.gross_to_cap;
+  const net = b.net_day / c.net_to_cap;
+  return basis === 'margin' ? net * (b.margin / c.margin) : net;
+}
 function drawImplied(D) {
-  const I = Object.fromEntries(D.implied.map(r => [r.key, r])), cap = D.breakCap;
-  const R = Object.fromEntries(D.ratios.map(r => [r.key, r]));
-  if (R.break_7d && R.cards_30d) document.getElementById('implied-sub').textContent = `Market cap at which each window's annualized net revenue would match the current $CARDS revenue yield. $BREAK currently trades at ${d3.format('.2f')(R.break_7d.cap_to_revenue)}x annualized net revenue (last 7 days); $CARDS at ${d3.format('.2f')(R.cards_30d.cap_to_revenue)}x (last 30 days).`;
+  const R = Object.fromEntries(D.ratios.map(r => [r.key, r])), c = R.cards_30d, cap = D.breakCap;
+  if (!c) return;
+  const keys = ['break_7d', 'break_1d', 'break_launch'].filter(k => R[k]);
+  const I = Object.fromEntries(keys.map(k => [k, { key: k, implied_cap: impliedCap(R[k], c, IMPL_BASIS) }]));
+  document.getElementById('implchips').replaceChildren(...Object.keys(IMPL_BASES).map(k => {
+    const b = el('button', 'chip', IMPL_BASES[k].label); b.type = 'button'; b.setAttribute('aria-pressed', String(IMPL_BASIS === k));
+    b.onclick = () => { IMPL_BASIS = k; drawImplied(DATA); }; return b;
+  }));
+  const f2 = d3.format('.2f'), b7 = R.break_7d;
+  const sub = {
+    gross: `Market cap at which each window's annualized volume would trade at the $CARDS market cap / volume multiple (${d3.format('.3f')(1 / (c.gross_to_cap * 365))}x). $BREAK currently trades at ${d3.format('.3f')(1 / (b7.gross_to_cap * 365))}x annualized volume (last 7 days).`,
+    net: `Market cap at which each window's annualized net revenue would trade at the $CARDS market cap / net revenue multiple (${f2(c.cap_to_revenue)}x). $BREAK currently trades at ${f2(b7.cap_to_revenue)}x (last 7 days).`,
+    margin: `The net revenue result scaled by $BREAK's net margin divided by $CARDS's (${F.pct(c.margin)}): a higher margin raises the implied multiple, a lower one reduces it. $BREAK margin: ${F.pct(b7.margin)} (last 7 days).`
+  }[IMPL_BASIS];
+  document.getElementById('implied-sub').textContent = sub + ' $CARDS figures use the last 30 days.';
+  const names = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
+  const B = IMPL_BASES[IMPL_BASIS];
+  document.getElementById('ptags').replaceChildren(...keys.map(k => {
+    const r = R[k], t = el('div', 'ptag' + (k === 'break_7d' ? ' hot' : ''));
+    const u = el('div', 'u'); u.append(el('b', '', F.times(I[k].implied_cap / cap)), ` current market cap of ${usdM(cap)}`);
+    const m = IMPL_BASIS === 'margin' ? `${F.pct(r.margin)} net margin vs ${F.pct(c.margin)}` : `${F.usd(B.metric(r))} ${B.unit}`;
+    t.append(el('div', 'w', `${names[k]}: ${m}`), el('div', 'p', usdM(I[k].implied_cap)), u);
+    return t;
+  }));
   const rows = [{ label: 'Current market cap', v: cap, kind: 'cur' }]
-    .concat(['break_7d', 'break_1d', 'break_launch'].filter(k => I[k]).map(k => ({ label: `Implied, ${MULT_WINS[k].toLowerCase()}`, v: I[k].implied_cap, kind: k })));
+    .concat(keys.map(k => ({ label: `Implied, ${MULT_WINS[k].toLowerCase()}`, v: I[k].implied_cap, kind: k })));
   const box = document.getElementById('impliedviz'); box.querySelectorAll('svg').forEach(x => x.remove());
   const W = Math.max(box.clientWidth, 280), narrow = W < 560, rowH = 40, m = { l: narrow ? 120 : 180, r: narrow ? 64 : 170, t: 22, b: 6 }, H = m.t + rows.length * rowH + m.b;
   const svg = svgIn(box, W, H); holoDefs(svg, 'holo-i', false);
