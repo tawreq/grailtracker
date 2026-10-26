@@ -202,7 +202,46 @@ tr.cards td { color: var(--haze); }
 .atile .s { color: var(--haze); font-size: .8rem; }
 .atile .s b { color: var(--ink); font-weight: 600; }
 #arpuchart { min-height: 400px; }
+.l4l { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--rail); }
+.l4l h3 { font-family: var(--display); font-weight: 700; font-size: clamp(1.25rem, 2vw, 1.6rem); margin: 0; }
+.l4lgrid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
+.l4l td:first-child { color: var(--haze); white-space: normal; }
+@media (max-width: 960px) { .l4lgrid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .l4l table { font-size: .78rem; } .l4l td, .l4l th { padding: 8px 6px; white-space: normal; } }
 @media (max-width: 560px) { .atile .n { font-size: 1.7rem; } }
+
+/* analysis groups and navigation */
+.toc { margin: 0 0 clamp(24px, 4vw, 40px); border: 1px solid var(--rail); border-radius: 22px; padding: clamp(16px, 2.2vw, 24px); background: rgba(27,32,80,.45); }
+.toc-head { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
+.toc-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.toc-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.toc-card { display: grid; gap: 4px; text-decoration: none; color: var(--ink); background: var(--vault); border: 1px solid var(--rail); border-radius: 14px; padding: 12px 14px; transition: border-color .15s; }
+.toc-card:hover { border-color: var(--cyan); }
+.toc-num { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; color: var(--gold); }
+.toc-title { font-family: var(--display); font-weight: 700; font-size: 1.2rem; line-height: 1.1; }
+.toc-desc { color: var(--haze); font-size: .78rem; line-height: 1.4; }
+.toc-links { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 3px; font-size: .8rem; }
+.toc-links a { color: var(--haze); text-decoration: none; }
+.toc-links a:hover { color: var(--ink); text-decoration: underline; }
+.gnav { position: sticky; top: 0; z-index: 30; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * clamp(16px, 4vw, 56px)); padding: 10px clamp(16px, 4vw, 56px); background: rgba(19,23,53,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rail); }
+.gnav::-webkit-scrollbar { display: none; }
+.gnav a { flex: none; color: var(--haze); text-decoration: none; font-size: .85rem; padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
+.gnav a span { color: var(--gold); font-weight: 600; margin-right: 2px; }
+.gnav a:hover { color: var(--ink); border-color: var(--rail); }
+.gnav a.on { color: var(--night); background: var(--ink); font-weight: 600; }
+.gnav a.on span { color: var(--night); }
+.group { margin-top: clamp(40px, 6vw, 72px); scroll-margin-top: 64px; }
+.group > * + * { margin-top: 20px; }
+.group > .pair { margin-top: 20px; }
+.ghead { display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; border-top: 2px solid var(--rail); margin-bottom: 4px; }
+.gnum { font-family: var(--display); font-weight: 900; font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: .85; color: var(--gold); }
+.ghead h2 { font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 3.6vw, 2.8rem); line-height: .95; margin: 0; }
+.ghead p { color: var(--haze); margin: 6px 0 0; max-width: 70ch; font-size: .95rem; }
+.group h2[id], .group h3[id] { scroll-margin-top: 72px; }
+#g-overview .hero { margin-top: 12px; }
+#g-overview > section[aria-labelledby="h-platform"] { margin-top: clamp(32px, 5vw, 56px); }
+@media (max-width: 1100px) { .toc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .toc-grid { grid-template-columns: 1fr; } .toc-links { display: none; } .toc-card { grid-template-columns: auto 1fr; column-gap: 10px; } .toc-num { grid-row: span 2; font-size: 1.4rem; } .toc-desc { grid-column: 2; } }
 
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
@@ -243,7 +282,43 @@ footer p { margin: 0 0 6px; }
     </div>
   </header>
 
-  <section class="hero" aria-label="Valuation summary">
+  <nav class="toc" aria-label="Contents">
+    <div class="toc-head">Contents</div>
+    <div class="toc-grid">
+      <div class="toc-item">
+      <a class="toc-card" href="#g-overview"><span class="toc-num">01</span><span class="toc-title">Overview</span><span class="toc-desc">Headline valuation against $CARDS, and Grail Break’s platform totals since launch.</span></a>
+      <ul class="toc-links"><li><a href="#g-overview">Headline yield</a></li><li><a href="#h-platform">Platform metrics</a></li></ul>
+      </div>
+      <div class="toc-item">
+      <a class="toc-card" href="#g-valuation"><span class="toc-num">02</span><span class="toc-title">Valuation</span><span class="toc-desc">What $BREAK would be worth at the multiples $CARDS trades at, and how the two compare.</span></a>
+      <ul class="toc-links"><li><a href="#h-implied">Implied valuation</a></li><li><a href="#h-trail">Trailing revenue yield</a></li><li><a href="#h-vs">$BREAK vs $CARDS</a></li><li><a href="#h-scen">Valuation scenarios</a></li></ul>
+      </div>
+      <div class="toc-item">
+      <a class="toc-card" href="#g-activity"><span class="toc-num">03</span><span class="toc-title">Platform activity</span><span class="toc-desc">Volume and net revenue over time, and which products they come from.</span></a>
+      <ul class="toc-links"><li><a href="#h-daily">Volume and net revenue</a></li><li><a href="#h-cumul">Running totals</a></li><li><a href="#h-mix">Volume by product</a></li></ul>
+      </div>
+      <div class="toc-item">
+      <a class="toc-card" href="#g-users"><span class="toc-num">04</span><span class="toc-title">Users</span><span class="toc-desc">Who buys, and how much revenue each user and buyer generates, including a like-for-like comparison with $CARDS.</span></a>
+      <ul class="toc-links"><li><a href="#h-people">Registered users and buyers</a></li><li><a href="#h-arpu">Revenue per user</a></li><li><a href="#h-l4l">Like-for-like vs $CARDS</a></li></ul>
+      </div>
+      <div class="toc-item">
+      <a class="toc-card" href="#g-burns"><span class="toc-num">05</span><span class="toc-title">Buybacks and burns</span><span class="toc-desc">How much $BREAK is bought back and burned, where the funds come from, and every transaction.</span></a>
+      <ul class="toc-links"><li><a href="#h-furnace">Buybacks and burns</a></li><li><a href="#h-burnline">$BREAK burned over time</a></li><li><a href="#h-ledger">Buyback ledger</a></li></ul>
+      </div>
+    </div>
+  </nav>
+
+  <nav class="gnav" id="gnav" aria-label="Sections">
+    <a href="#g-overview" data-g="overview"><span>01</span> Overview</a>
+    <a href="#g-valuation" data-g="valuation"><span>02</span> Valuation</a>
+    <a href="#g-activity" data-g="activity"><span>03</span> Platform activity</a>
+    <a href="#g-users" data-g="users"><span>04</span> Users</a>
+    <a href="#g-burns" data-g="burns"><span>05</span> Buybacks and burns</a>
+  </nav>
+
+  <section class="group" id="g-overview" aria-labelledby="gh-overview">
+    <header class="ghead"><span class="gnum">01</span><div><h2 id="gh-overview">Overview</h2><p>Headline valuation against $CARDS, and Grail Break’s platform totals since launch.</p></div></header>
+<section class="hero" aria-label="Valuation summary">
     <div class="slabs" id="slabs">
       <div class="slab main" id="slab-break">
         <div class="label"><div><div class="who">Grail Break</div><div class="what">$BREAK, last 7 days</div></div><div><div class="grade" id="g-break">–</div><div class="gname">revenue yield</div></div></div>
@@ -260,8 +335,7 @@ footer p { margin: 0 0 6px; }
       <div class="tags" id="tags"></div>
     </div>
   </section>
-
-  <section style="margin:clamp(36px,6vw,72px) 0" aria-labelledby="h-platform">
+<section aria-labelledby="h-platform">
     <div class="band">
       <h2 id="h-platform">Platform metrics</h2>
       <p id="platform-sub">Grail Break's own platform numbers since launch.</p>
@@ -269,8 +343,11 @@ footer p { margin: 0 0 6px; }
     <div class="kpis" id="kpis"></div>
     <div class="rail" id="rail" role="group" aria-label="Key ratios" style="margin:0"></div>
   </section>
+  </section>
 
-  <section class="panel" style="margin-bottom:20px" aria-labelledby="h-implied">
+  <section class="group" id="g-valuation" aria-labelledby="gh-valuation">
+    <header class="ghead"><span class="gnum">02</span><div><h2 id="gh-valuation">Valuation</h2><p>What $BREAK would be worth at the multiples $CARDS trades at, and how the two compare.</p></div></header>
+<section class="panel" aria-labelledby="h-implied">
     <div class="band" style="margin:0">
       <h2 id="h-implied" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Implied valuation at $CARDS multiples</h2>
       <div class="chips" id="implchips" role="group" aria-label="Valuation basis"></div>
@@ -280,71 +357,77 @@ footer p { margin: 0 0 6px; }
     <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
-
-  <div class="pair" style="margin:0 0 20px">
-    <section class="panel" aria-labelledby="h-trail">
+<div class="pair">
+<section class="panel" aria-labelledby="h-trail">
       <h2 id="h-trail">Trailing 7-day revenue yield</h2>
       <p class="sub">Annualized net revenue from each day's trailing 7 days, as a share of current market cap, for the last 7 days. The dashed line is the $CARDS 30-day figure.</p>
       <div class="chart" id="trail"></div>
     </section>
-    <section class="panel" aria-labelledby="h-vs">
+<section class="panel" aria-labelledby="h-vs">
       <h2 id="h-vs">$BREAK vs. $CARDS</h2>
       <p class="sub" id="vs-sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
       <div class="versus" id="versus"></div>
     </section>
-  </div>
-
-  <section class="panel" style="margin-bottom:20px" aria-labelledby="h-scen">
+</div>
+<section class="panel" aria-labelledby="h-scen">
     <h2 id="h-scen">Valuation scenarios, last 7 days</h2>
     <p class="sub" id="scen-sub">$BREAK's implied market cap from its last 7 full days, valued on gross volume or net revenue at the multiple $CARDS trades at on its market cap or its FDV. The horizontal axis is each scenario as a multiple of the current market cap; the gold dashed line is today's market cap. Circle area is proportional to market cap.</p>
     <div class="legend" id="scenkey" style="margin-bottom:12px"></div>
     <div class="chart" id="scenviz"></div>
   </section>
+  </section>
 
-  <section class="panel" aria-labelledby="h-daily">
+  <section class="group" id="g-activity" aria-labelledby="gh-activity">
+    <header class="ghead"><span class="gnum">03</span><div><h2 id="gh-activity">Platform activity</h2><p>Volume and net revenue over time, and which products they come from.</p></div></header>
+<section class="panel" aria-labelledby="h-daily">
     <h2 id="h-daily">Volume and net revenue, day by day</h2>
     <p class="sub">Last 7 full days plus today (Eastern time). Volume (top) and net revenue (bottom), each on its own scale. The line shows net revenue as a share of volume (right axis). Net revenue includes $BREAK trading fees. The faded bar is the current partial day.</p>
     <div class="chart" id="daily"></div>
   </section>
-
-  <div class="pair">
-    <section class="panel" aria-labelledby="h-cumul">
+<div class="pair">
+<section class="panel" aria-labelledby="h-cumul">
       <h2 id="h-cumul">Volume and revenue, running total</h2>
       <p class="sub">Running totals since launch, shown for the last 7 days. The last point includes the current partial day.</p>
       <div class="chart" id="cumul"></div>
     </section>
-    <section class="panel" aria-labelledby="h-burnline">
-      <h2 id="h-burnline">$BREAK burned, running total</h2>
-      <p class="sub">Running total of $BREAK burned since launch, shown for the last 7 days. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
-      <div class="chart" id="burnline"></div>
-    </section>
-  </div>
-
-  <div class="pair">
-    <section class="panel" aria-labelledby="h-mix">
+<section class="panel" aria-labelledby="h-mix">
       <h2 id="h-mix">Volume by product</h2>
       <p class="sub">Since launch. Sell-backs are cards sold back for USDC and account for roughly half of volume (outflow).</p>
       <div class="mix" id="mix"></div>
       <div class="prods" id="prods"></div>
     </section>
-    <section class="panel" aria-labelledby="h-people">
+</div>
+  </section>
+
+  <section class="group" id="g-users" aria-labelledby="gh-users">
+    <header class="ghead"><span class="gnum">04</span><div><h2 id="gh-users">Users</h2><p>Who buys, and how much revenue each user and buyer generates, including a like-for-like comparison with $CARDS.</p></div></header>
+<section class="panel" aria-labelledby="h-people">
       <h2 id="h-people">Registered users and buyers</h2>
       <p class="sub" id="people-sub">Registered users against users with at least one purchase.</p>
       <div id="dots"></div>
       <div class="mini" id="peoplestats"></div>
     </section>
-  </div>
-
-  <section class="panel" style="margin-top:20px" aria-labelledby="h-arpu">
+<section class="panel" aria-labelledby="h-arpu">
     <h2 id="h-arpu">Estimated revenue per user</h2>
     <p class="sub" id="arpu-sub">Net revenue divided by registered users (ARPU) and by users who have bought (ARPPU).</p>
     <div class="arpu">
       <div class="atiles" id="atiles"></div>
       <div class="chart" id="arpuchart"></div>
     </div>
+    <div class="l4l">
+      <h3 id="h-l4l">Like-for-like: $BREAK vs $CARDS per buyer</h3>
+      <p class="sub" id="l4l-sub"></p>
+      <div class="l4lgrid">
+        <div class="versus" id="l4lbars"></div>
+        <div class="tablewrap" style="margin-top:0"><table><thead><tr><th>Basis</th><th>$BREAK</th><th>$CARDS</th></tr></thead><tbody id="l4ltable"></tbody></table></div>
+      </div>
+    </div>
+  </section>
   </section>
 
-  <section class="panel" style="margin-top:20px" aria-labelledby="h-furnace">
+  <section class="group" id="g-burns" aria-labelledby="gh-burns">
+    <header class="ghead"><span class="gnum">05</span><div><h2 id="gh-burns">Buybacks and burns</h2><p>How much $BREAK is bought back and burned, where the funds come from, and every transaction.</p></div></header>
+<section class="panel" aria-labelledby="h-furnace">
     <h2 id="h-furnace">Buybacks and burns</h2>
     <p class="sub">Sources: the recurring buy and burn funded by $BREAK trading fees, and Pump.fun's one-time graduation boost. Totals are since launch; the daily chart shows the last 7 days.</p>
     <div class="furnace">
@@ -358,8 +441,12 @@ footer p { margin: 0 0 6px; }
       </div>
     </div>
   </section>
-
-  <section class="panel" style="margin-top:20px" aria-labelledby="h-ledger">
+<section class="panel" aria-labelledby="h-burnline">
+      <h2 id="h-burnline">$BREAK burned, running total</h2>
+      <p class="sub">Running total of $BREAK burned since launch, shown for the last 7 days. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
+      <div class="chart" id="burnline"></div>
+    </section>
+<section class="panel" aria-labelledby="h-ledger">
     <div class="band" style="margin:0">
       <h2 id="h-ledger" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Buyback ledger</h2>
       <div class="chips" id="chips" role="group" aria-label="Filter buybacks by source"></div>
@@ -367,6 +454,7 @@ footer p { margin: 0 0 6px; }
     <p class="sub" id="ledger-sub">Each buyback is a Solana transaction, linked to Solscan.</p>
     <div class="chart" id="ledgerviz"></div>
     <div class="ledger"><table><thead><tr><th>Time (ET)</th><th>Source</th><th>$BREAK burned</th><th>USD</th><th>Running total</th><th>Tx</th></tr></thead><tbody id="ledger"></tbody></table></div>
+  </section>
   </section>
 
   <footer>
@@ -514,6 +602,7 @@ function render() {
   drawDaily(inWin(D.daily));
   drawTrailing(inWin(D.trailing), c.cap_to_revenue);
   if (D.cumulative) drawCumul(inWin(D.cumulative));
+  if (D.arpu && D.arpu.cards_reference) renderLikeForLike(D);
   if (D.arpu && D.arpu.arpu !== null) { renderArpu(D.arpu); drawArpu({ ...D.arpu, series: inWin(D.arpu.series), daily: inWin(D.arpu.daily) }); }
   if (D.burns && D.burns.length && burnsInWin(D.burns).length) { drawBurnline(burnsInWin(D.burns), D.supply); drawLedger(); }
   first = false;
@@ -881,6 +970,54 @@ function drawLedger() {
   }));
 }
 
+/* ---------- Like-for-like ARPU: $BREAK (live, since launch) vs $CARDS (latest published quarter) ---------- */
+function renderLikeForLike(D) {
+  const A = D.arpu, C = A.cards_reference, T = D.totals;
+  const perBuyerYr = (v, buyers, days) => v / buyers / days * 365;
+  const B = {
+    buy: perBuyerYr(A.paid_volume, A.buyers, A.live_days),
+    net: perBuyerYr(T.revenue, A.buyers, A.live_days),
+    take: T.revenue / A.paid_volume
+  };
+  const K = {
+    buy: perBuyerYr(C.pack_sales, C.buyers, C.days),
+    net: perBuyerYr(C.gross_profit, C.buyers, C.days),
+    take: C.gross_profit / C.pack_sales
+  };
+  const d1 = d3.format('.1f');
+  document.getElementById('l4l-sub').textContent = `Both platforms on the same basis: totals for a period, divided by the wallets that bought in it and by the days in it, then annualized. $BREAK: since launch (${d1(A.live_days)} days, ${F.int(A.buyers)} buyers), live. $CARDS: ${C.period} (${C.days} days, ${F.int(C.buyers)} buyers), from ${C.source}. Differences that remain: $BREAK net revenue includes $BREAK trading fees, while the $CARDS figure is gross profit on packs; and $BREAK's period is much shorter, with a small buyer base.`;
+  const rows = [
+    ['buy', 'Purchases per buyer, annualized', '$BREAK: packs, seats, battles and boosts (excludes sell-backs). $CARDS: pack sales.', F.usd],
+    ['net', 'Net revenue per buyer, annualized (ARPPU)', '$BREAK: net revenue. $CARDS: gross profit.', F.usd],
+    ['take', 'Take rate (net revenue / purchases)', '', d3.format('.1%')]
+  ];
+  document.getElementById('l4lbars').replaceChildren(...rows.map(([k, t, note, fmt]) => {
+    const row = el('div', 'vrow'), head = el('div', 't'), b = B[k], c = K[k];
+    head.append(el('span', '', t), el('span', '', b >= c ? `$BREAK ${F.times(b / c)} higher` : `$BREAK ${F.times(c / b)} lower`));
+    const bars = el('div', 'vbars'), mx = Math.max(b, c);
+    [[b, '$BREAK', 'b'], [c, '$CARDS', 'c']].forEach(([v, name, cls]) => {
+      const bar = el('div', 'vbar'), tr = el('div', 'vtrack'), fill = el('div', 'vfill ' + cls);
+      fill.style.width = `calc((100% - 4.5rem) * ${Math.max(v / mx, 0.015)})`;
+      tr.append(fill, el('span', 'vval', fmt(v))); bar.append(el('span', '', name), tr); bars.append(bar);
+    });
+    row.append(head, bars);
+    if (note) { const n = el('div', 'vbar'); n.style.display = 'block'; n.style.marginTop = '4px'; n.textContent = note; row.append(n); }
+    return row;
+  }));
+  const tr = (label, b, c) => { const r = el('tr'); [label, b, c].forEach(v => r.append(el('td', '', v))); return r; };
+  const src = el('a', '', 'source'); src.href = C.url; src.target = '_blank'; src.rel = 'noopener';
+  const srcCell = el('td'); srcCell.append(`${C.period}, `, src);
+  const srcRow = el('tr'); srcRow.append(el('td', '', 'Period'), el('td', '', `Since launch, ${d1(A.live_days)} days (live)`), srcCell);
+  document.getElementById('l4ltable').replaceChildren(
+    srcRow,
+    tr('Buyers in period', F.int(A.buyers), F.int(C.buyers)),
+    tr('Purchases in period', F.usd(A.paid_volume), F.usd(C.pack_sales)),
+    tr('Net revenue / gross profit in period', F.usd(T.revenue), F.usd(C.gross_profit)),
+    tr('Purchases per buyer per day', F.usd(A.paid_volume / A.buyers / A.live_days), F.usd(C.pack_sales / C.buyers / C.days)),
+    tr('Net revenue per buyer per day', F.usd(T.revenue / A.buyers / A.live_days), F.usd(C.gross_profit / C.buyers / C.days))
+  );
+}
+
 /* ---------- Estimated ARPU ---------- */
 const usd2 = v => v >= 100 ? d3.format('$,.0f')(v) : d3.format('$,.2f')(v);
 function renderArpu(A) {
@@ -1090,6 +1227,19 @@ async function load() {
 }
 load();
 setInterval(load, 5 * 60 * 1000);
+// Highlight the group in view in the sticky navigation.
+(() => {
+  const links = [...document.querySelectorAll('#gnav a')];
+  const set = id => links.forEach(a => a.classList.toggle('on', a.dataset.g === id));
+  if (!('IntersectionObserver' in window)) return;
+  const seen = new Map();
+  const io = new IntersectionObserver(es => {
+    es.forEach(e => seen.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
+    const top = [...document.querySelectorAll('.group')].find(g => (seen.get(g.id) || 0) > 0);
+    if (top) set(top.id.slice(2));
+  }, { rootMargin: '-80px 0px -55% 0px', threshold: [0, 0.01, 0.5] });
+  document.querySelectorAll('.group').forEach(g => io.observe(g));
+})();
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
 </script>
 <script>

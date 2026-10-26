@@ -4,6 +4,15 @@
 const BREAK = 'BREAKLm9nsBW8M5ZTk52EUpwSC5cdCepdjUMSPnCxTgd';
 const CARDS = 'CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp';
 
+// Collector Crypt per-buyer reference. No live feed publishes $CARDS user counts, so this uses the
+// latest published quarter. Update when a new quarter is reported.
+const CARDS_REFERENCE = {
+  period: 'Q3 2026', start: '2026-07-01', end: '2026-09-30', days: 92,
+  buyers: 21876, pack_sales: 433.1e6, gross_profit: 25.4e6,
+  source: 'Pine Analytics, via Crypto Briefing (13 Oct 2026)',
+  url: 'https://cryptobriefing.com/collector-crypt-record-q3-pack-sales/'
+};
+
 const SOURCES = {
   grail: 'https://grailbreak.cards/api/gh/revenue',
   breakToken: `https://api.dexscreener.com/latest/dex/tokens/${BREAK}`,
@@ -105,8 +114,11 @@ function computeAll(raw) {
   const users = Number(gb.users) || 0, buyers = Number(gb.buyers) || 0;
   const per = (v, n) => n > 0 ? v / n : null;
   const net7 = ratios.find(r => r.key === 'break_7d').net_day;
+  // Days $BREAK has been live: from the start of its first Eastern-time day (EDT, UTC-4) to now.
+  const live_days = Math.max((Date.now() - Date.parse(daily[0].day + 'T04:00:00Z')) / 864e5, 1);
+  const sellbackUsd = (gb.products || []).filter(p => p.k === 'Card sell-backs').reduce((t, p) => t + Number(p.usd), 0);
   const arpu = {
-    users, buyers,
+    users, buyers, live_days, paid_volume: Number(gb.volume) - sellbackUsd, cards_reference: CARDS_REFERENCE,
     arpu: per(Number(gb.revenue), users),
     arppu: per(Number(gb.revenue), buyers),
     arpu_annual: per(net7 * 365, users),
