@@ -230,7 +230,7 @@ tr.cards td { color: var(--haze); }
 #g-overview > section[aria-labelledby="h-platform"] { margin-top: clamp(32px, 5vw, 56px); }
 
 /* key multiples summary */
-#g-overview > .msum { margin-top: clamp(28px, 4vw, 48px); }
+#g-valuation > .msum { margin-top: 20px; }
 .mcards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .mcard { background: var(--vault); border: 1px solid var(--rail); border-radius: 18px; padding: 16px 18px 14px; display: flex; flex-direction: column; min-width: 0; }
 .mcard .k { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
@@ -307,10 +307,6 @@ footer p { margin: 0 0 6px; }
       <div class="tags" id="tags"></div>
     </div>
   </section>
-<section class="msum" aria-labelledby="h-msum">
-  <div class="band" style="margin:0 0 14px"><h2 id="h-msum" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Key multiples vs $CARDS</h2><p id="msum-sub"></p></div>
-  <div class="mcards" id="mcards"></div>
-</section>
 <section aria-labelledby="h-platform">
     <div class="band">
       <h2 id="h-platform">Platform metrics</h2>
@@ -323,6 +319,10 @@ footer p { margin: 0 0 6px; }
 
   <section class="group" id="g-valuation" aria-labelledby="gh-valuation">
     <header class="ghead"><span class="gnum">02</span><div><h2 id="gh-valuation">Valuation</h2><p>What $BREAK would be worth at the multiples $CARDS trades at, and how the two compare.</p></div></header>
+<section class="msum" aria-labelledby="h-msum">
+  <div class="band" style="margin:0 0 14px"><h2 id="h-msum" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Key multiples vs $CARDS</h2><p id="msum-sub"></p></div>
+  <div class="mcards" id="mcards"></div>
+</section>
 <section class="panel" aria-labelledby="h-implied">
     <div class="band" style="margin:0">
       <h2 id="h-implied" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Implied valuation at $CARDS multiples</h2>
