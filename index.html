@@ -211,18 +211,6 @@ tr.cards td { color: var(--haze); }
 @media (max-width: 560px) { .atile .n { font-size: 1.7rem; } }
 
 /* analysis groups and navigation */
-.toc { margin: 0 0 clamp(24px, 4vw, 40px); border: 1px solid var(--rail); border-radius: 22px; padding: clamp(16px, 2.2vw, 24px); background: rgba(27,32,80,.45); }
-.toc-head { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
-.toc-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-.toc-item { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.toc-card { display: grid; gap: 4px; text-decoration: none; color: var(--ink); background: var(--vault); border: 1px solid var(--rail); border-radius: 14px; padding: 12px 14px; transition: border-color .15s; }
-.toc-card:hover { border-color: var(--cyan); }
-.toc-num { font-family: var(--display); font-weight: 900; font-size: 1.6rem; line-height: 1; color: var(--gold); }
-.toc-title { font-family: var(--display); font-weight: 700; font-size: 1.2rem; line-height: 1.1; }
-.toc-desc { color: var(--haze); font-size: .78rem; line-height: 1.4; }
-.toc-links { list-style: none; margin: 0; padding: 0 0 0 4px; display: grid; gap: 3px; font-size: .8rem; }
-.toc-links a { color: var(--haze); text-decoration: none; }
-.toc-links a:hover { color: var(--ink); text-decoration: underline; }
 .gnav { position: sticky; top: 0; z-index: 30; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * clamp(16px, 4vw, 56px)); padding: 10px clamp(16px, 4vw, 56px); background: rgba(19,23,53,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rail); }
 .gnav::-webkit-scrollbar { display: none; }
 .gnav a { flex: none; color: var(--haze); text-decoration: none; font-size: .85rem; padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
@@ -240,8 +228,6 @@ tr.cards td { color: var(--haze); }
 .group h2[id], .group h3[id] { scroll-margin-top: 72px; }
 #g-overview .hero { margin-top: 12px; }
 #g-overview > section[aria-labelledby="h-platform"] { margin-top: clamp(32px, 5vw, 56px); }
-@media (max-width: 1100px) { .toc-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .toc-grid { grid-template-columns: 1fr; } .toc-links { display: none; } .toc-card { grid-template-columns: auto 1fr; column-gap: 10px; } .toc-num { grid-row: span 2; font-size: 1.4rem; } .toc-desc { grid-column: 2; } }
 
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
@@ -281,32 +267,6 @@ footer p { margin: 0 0 6px; }
       <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
     </div>
   </header>
-
-  <nav class="toc" aria-label="Contents">
-    <div class="toc-head">Contents</div>
-    <div class="toc-grid">
-      <div class="toc-item">
-      <a class="toc-card" href="#g-overview"><span class="toc-num">01</span><span class="toc-title">Overview</span><span class="toc-desc">Headline valuation against $CARDS, and Grail Break’s platform totals since launch.</span></a>
-      <ul class="toc-links"><li><a href="#g-overview">Headline yield</a></li><li><a href="#h-platform">Platform metrics</a></li></ul>
-      </div>
-      <div class="toc-item">
-      <a class="toc-card" href="#g-valuation"><span class="toc-num">02</span><span class="toc-title">Valuation</span><span class="toc-desc">What $BREAK would be worth at the multiples $CARDS trades at, and how the two compare.</span></a>
-      <ul class="toc-links"><li><a href="#h-implied">Implied valuation</a></li><li><a href="#h-trail">Trailing revenue yield</a></li><li><a href="#h-vs">$BREAK vs $CARDS</a></li><li><a href="#h-scen">Valuation scenarios</a></li></ul>
-      </div>
-      <div class="toc-item">
-      <a class="toc-card" href="#g-activity"><span class="toc-num">03</span><span class="toc-title">Platform activity</span><span class="toc-desc">Volume and net revenue over time, and which products they come from.</span></a>
-      <ul class="toc-links"><li><a href="#h-daily">Volume and net revenue</a></li><li><a href="#h-cumul">Running totals</a></li><li><a href="#h-mix">Volume by product</a></li></ul>
-      </div>
-      <div class="toc-item">
-      <a class="toc-card" href="#g-users"><span class="toc-num">04</span><span class="toc-title">Users</span><span class="toc-desc">Who buys, and how much revenue each user and buyer generates, including a like-for-like comparison with $CARDS.</span></a>
-      <ul class="toc-links"><li><a href="#h-people">Registered users and buyers</a></li><li><a href="#h-arpu">Revenue per user</a></li><li><a href="#h-l4l">Like-for-like vs $CARDS</a></li></ul>
-      </div>
-      <div class="toc-item">
-      <a class="toc-card" href="#g-burns"><span class="toc-num">05</span><span class="toc-title">Buybacks and burns</span><span class="toc-desc">How much $BREAK is bought back and burned, where the funds come from, and every transaction.</span></a>
-      <ul class="toc-links"><li><a href="#h-furnace">Buybacks and burns</a></li><li><a href="#h-burnline">$BREAK burned over time</a></li><li><a href="#h-ledger">Buyback ledger</a></li></ul>
-      </div>
-    </div>
-  </nav>
 
   <nav class="gnav" id="gnav" aria-label="Sections">
     <a href="#g-overview" data-g="overview"><span>01</span> Overview</a>
