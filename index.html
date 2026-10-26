@@ -101,6 +101,7 @@ a { color: var(--cyan); }
 #daily { min-height: 470px; }
 #impliedviz { min-height: 200px; }
 #trail { min-height: 320px; }
+#scenviz { min-height: 420px; }
 
 .versus { display: grid; gap: 22px; }
 .vrow .t { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; }
@@ -278,6 +279,13 @@ footer p { margin: 0 0 6px; }
     <div class="chart" id="impliedviz"></div>
     <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
+  </section>
+
+  <section class="panel" style="margin-bottom:20px" aria-labelledby="h-scen">
+    <h2 id="h-scen">Every valuation scenario</h2>
+    <p class="sub" id="scen-sub">Each point is $BREAK's implied market cap under one scenario: a revenue window, valued on gross volume or net revenue, at the multiple $CARDS trades at on its market cap or its FDV. The horizontal axis is the annualized $BREAK revenue that scenario uses; the gold line is the current market cap. Both axes are logarithmic.</p>
+    <div class="legend" id="scenkey" style="margin-bottom:12px"></div>
+    <div class="chart" id="scenviz"></div>
   </section>
 
   <section class="panel" aria-labelledby="h-daily">
@@ -502,6 +510,7 @@ function render() {
   }
 
   drawImplied(D);
+  drawScenarios();
   drawDaily(inWin(D.daily));
   drawTrailing(inWin(D.trailing), c.cap_to_revenue);
   if (D.cumulative) drawCumul(inWin(D.cumulative));
@@ -981,6 +990,75 @@ function drawImplied(D) {
 }
 
 const MULT_WINS = { break_7d: 'Last 7 days', break_1d: 'Last full day', break_launch: 'Since launch' };
+
+/* ---------- All valuation scenarios ---------- */
+/* 3 windows x 2 revenue bases x 2 $CARDS valuations = 12 implied caps, plotted against the
+   annualized $BREAK revenue each one uses. Shows every scenario regardless of the switches. */
+function drawScenarios() {
+  const box = document.getElementById('scenviz'); if (!box || !DATA) return;
+  box.querySelectorAll('svg').forEach(s => s.remove());
+  const sets = DATA.cards_basis || { mc: { ratios: DATA.ratios } };
+  const cap = DATA.breakCap, wins = ['break_launch', 'break_7d', 'break_1d'];
+  const short = { break_launch: 'Launch', break_7d: '7d', break_1d: '1d' };
+  const VAL = { mc: { name: '$CARDS market cap', color: css('--cyan') }, fdv: { name: '$CARDS FDV', color: css('--violet') } };
+  const BASIS = { gross: { name: 'Gross volume', field: 'gross_day', ratio: 'gross_to_cap' }, net: { name: 'Net revenue', field: 'net_day', ratio: 'net_to_cap' } };
+  const pts = [];
+  Object.keys(sets).forEach(v => {
+    const R = Object.fromEntries(sets[v].ratios.map(r => [r.key, r])), c = R.cards_30d; if (!c) return;
+    Object.keys(BASIS).forEach(bk => {
+      const B = BASIS[bk];
+      wins.filter(k => R[k]).forEach(k => {
+        const x = R[k][B.field] * 365, y = R[k][B.field] / c[B.ratio];
+        if (x > 0 && y > 0) pts.push({ v, bk, k, x, y, mult: y / x });
+      });
+    });
+  });
+  if (!pts.length) return;
+
+  document.getElementById('scenkey').replaceChildren(...[
+    ...Object.keys(VAL).filter(v => sets[v]).map(v => { const d = el('div'); const i = el('i'); i.style.background = VAL[v].color; i.style.borderRadius = '50%'; d.append(i, el('span', '', VAL[v].name)); return d; }),
+    ...Object.keys(BASIS).map(bk => { const d = el('div'); const i = el('i'); i.style.background = 'transparent'; i.style.border = '1.5px solid var(--haze)'; i.style.borderRadius = bk === 'net' ? '50%' : '2px'; if (bk === 'gross') i.style.transform = 'translateY(1px) rotate(45deg)'; d.append(i, el('span', '', BASIS[bk].name + (bk === 'net' ? ' (circle)' : ' (diamond)'))); return d; }),
+    (() => { const d = el('div'); const i = el('i'); i.style.background = css('--gold'); i.style.height = '2px'; d.append(i, el('span', '', 'Current market cap'), el('b', '', usdM(cap))); return d; })()
+  ]);
+
+  const W = Math.max(box.clientWidth, 300), narrow = W < 560, H = narrow ? 380 : 420;
+  const m = { l: narrow ? 52 : 64, r: narrow ? 14 : 24, t: 16, b: 44 };
+  const svg = svgIn(box, W, H);
+  const pad = (lo, hi) => [lo / 1.6, hi * 1.6];
+  const x = d3.scaleLog(pad(d3.min(pts, p => p.x), d3.max(pts, p => p.x)), [m.l, W - m.r]);
+  const yd = pad(Math.min(d3.min(pts, p => p.y), cap), Math.max(d3.max(pts, p => p.y), cap));
+  const y = d3.scaleLog(yd, [H - m.b, m.t]);
+  const money = d => '$' + d3.format('~s')(d).replace('G', 'B');
+  const logTicks = s => { const [a, z] = s.domain(), out = []; for (let e = Math.floor(Math.log10(a)); e <= Math.ceil(Math.log10(z)); e++) [1, 2, 5].forEach(k => { const t = k * 10 ** e; if (t >= a && t <= z) out.push(t); }); return out; };
+  const thin = (ts, px) => { const keep = []; ts.forEach(t => { if (!keep.length || Math.abs(px(t) - px(keep[keep.length - 1])) >= (narrow ? 44 : 56)) keep.push(t); }); return keep; };
+  const xt = thin(logTicks(x), x), yt = thin(logTicks(y), y);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('line').data(xt).join('line').attr('y1', m.t).attr('y2', H - m.b).attr('x1', x).attr('x2', x).attr('stroke', 'rgba(158,165,214,.08)');
+  svg.append('g').selectAll('text').data(yt).join('text').attr('x', m.l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(money);
+  svg.append('g').selectAll('text').data(xt).join('text').attr('x', x).attr('y', H - m.b + 18).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(money);
+  svg.append('text').attr('x', (m.l + W - m.r) / 2).attr('y', H - 4).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').attr('font-size', 11).text('Annualized $BREAK revenue used (volume or net)');
+  svg.append('text').attr('transform', `translate(12,${(m.t + H - m.b) / 2}) rotate(-90)`).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').attr('font-size', 11).text('Implied market cap');
+
+  // Current market cap.
+  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(cap)).attr('y2', y(cap)).attr('stroke', css('--gold')).attr('stroke-width', 2).attr('stroke-dasharray', '6 4');
+  svg.append('text').attr('x', W - m.r - 4).attr('y', y(cap) - 7).attr('text-anchor', 'end').attr('fill', css('--gold')).attr('font-weight', 600).text(`Current ${usdM(cap)}`);
+
+  // Points: circle = net revenue, diamond = gross volume; colour = $CARDS valuation basis.
+  const sym = d3.symbol().size(narrow ? 90 : 120);
+  const g = svg.append('g').selectAll('path').data(pts).join('path')
+    .attr('transform', p => `translate(${x(p.x)},${y(p.y)})`)
+    .attr('d', p => sym.type(p.bk === 'net' ? d3.symbolCircle : d3.symbolDiamond)())
+    .attr('fill', p => VAL[p.v].color).attr('fill-opacity', p => p.k === 'break_7d' ? .95 : .55)
+    .attr('stroke', 'var(--night)').attr('stroke-width', 1.5).style('cursor', 'pointer');
+  if (first && !reduce) g.attr('opacity', 0).transition().duration(600).delay((p, i) => 150 + i * 40).attr('opacity', 1);
+  if (!narrow) svg.append('g').selectAll('text').data(pts).join('text')
+    .attr('x', p => x(p.x) + 10).attr('y', p => y(p.y) + 4).attr('fill', 'var(--haze)').attr('font-size', 10.5).text(p => short[p.k]);
+
+  const tip = tipFor(box);
+  g.on('mousemove', (e, p) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, `${MULT_WINS[p.k]} · ${BASIS[p.bk].name} · ${VAL[p.v].name}`, [`Implied cap ${usdM(p.y)} (${F.times(p.y / cap)} current)`, `Annualized ${p.bk === 'net' ? 'net revenue' : 'volume'} ${F.usd(p.x)}`, `Multiple applied ${d3.format('.3~r')(p.mult)}x`]); })
+    .on('mouseleave', () => tip.hide());
+  svg.attr('role', 'img').attr('aria-label', `Scatter of ${pts.length} implied $BREAK valuations against the current market cap of ${usdM(cap)}`);
+}
 
 // Gentle tilt on the main slab when pointed at.
 const slab = document.getElementById('slab-break');
