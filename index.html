@@ -3,29 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GBDASH · Grail Break Ratio Monitor</title>
+<title>Grail Break Ratio Tracker</title>
 <meta name="description" content="Live valuation ratios for Grail Break ($BREAK) against Collector Crypt ($CARDS).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
 :root {
-  --night: #000000;
-  --vault: #080808;
-  --rail: #2a2a2a;
-  --ink: #f2f2f2;
-  --haze: #d9952b;
-  --label-red: #ff4d4d;
-  --cyan: #4fc3f7;
-  --violet: #57d97a;
-  --gold: #ffa31a;
-  --volume: #3d5a80;
-  --bar: #0d2a5e;
-  --up: #3ddc84;
-  --holo: var(--gold);
-  --display: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  --text: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --night: #131735;
+  --vault: #1b2050;
+  --rail: #2d3470;
+  --ink: #eef0ff;
+  --haze: #9ea5d6;
+  --label-red: #e2373f;
+  --cyan: #7fe3f0;
+  --violet: #b69cff;
+  --gold: #f2c66d;
+  --volume: #4a528f;
+  --holo: linear-gradient(115deg, var(--cyan) 0%, var(--violet) 45%, var(--gold) 100%);
+  --display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --text: "Instrument Sans", system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
 html { background: var(--night); }
@@ -206,108 +204,6 @@ tr.cards td { color: var(--haze); }
 #arpuchart { min-height: 400px; }
 @media (max-width: 560px) { .atile .n { font-size: 1.7rem; } }
 
-/* ---------- Terminal theme ---------- */
-html, body { background: #000; }
-body { font-size: 14px; line-height: 1.45; background: #000 !important; -webkit-font-smoothing: antialiased; }
-.page { width: min(100%, 110rem); padding: 0 clamp(10px, 2vw, 24px) 40px; }
-.top { position: sticky; top: 0; z-index: 20; background: #000; margin: 0 calc(-1 * clamp(10px, 2vw, 24px)); padding: 6px clamp(10px, 2vw, 24px); border-bottom: 2px solid var(--gold); align-items: center; }
-.brand { font-size: .9rem; font-weight: 500; letter-spacing: .04em; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
-.brand b { background: var(--gold); color: #000; padding: 1px 8px; font-weight: 700; }
-.brand span { color: var(--haze); }
-.brand em { font-style: normal; color: var(--ink); font-variant-numeric: tabular-nums; }
-.live { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
-.live i { border-radius: 0; background: var(--up); }
-.basis { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
-.fkeys { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 18px; }
-.fkeys a { color: #fff; background: var(--bar); text-decoration: none; padding: 3px 10px; font-size: .75rem; letter-spacing: .06em; border: 1px solid #1d4590; }
-.fkeys a b { color: var(--gold); font-weight: 600; }
-.fkeys a:hover { background: #163d85; }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-
-/* headline */
-.hero { gap: clamp(16px, 3vw, 40px); }
-.slabs { perspective: none; gap: 12px; }
-.slab { border-radius: 0; padding: 0; background: var(--vault); border: 1px solid var(--rail); box-shadow: none; transform: none !important; }
-.slab.ref { opacity: 1; }
-.label { border-radius: 0; background: var(--bar); color: #fff; border-top: 0; padding: 6px 10px; }
-.label .who { font-family: var(--text); font-size: .85rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-.label .what, .label .gname { color: #b8c7e6; }
-.label .grade { font-family: var(--text); font-size: 1.2rem; font-weight: 600; color: var(--gold); }
-.slab.ref .label .grade { font-size: 1.1rem; color: #fff; }
-.card, .slab.main .card, .slab.ref .card { margin: 0; border-radius: 0; aspect-ratio: auto; min-height: clamp(150px, 18vw, 230px); background: #000; }
-.card::before, .slab.main .card::after { display: none; }
-.card .big { font-family: var(--text); font-weight: 600; letter-spacing: -.03em; color: var(--gold); font-size: clamp(2.4rem, 5vw, 4.4rem); }
-.slab.ref .card .big { color: var(--ink); font-size: clamp(2rem, 3.6vw, 3rem); }
-.card .cap, .slab.ref .card .cap { color: var(--haze); font-weight: 400; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
-.pitch h1 { font-family: var(--text); font-weight: 600; font-size: clamp(1.8rem, 3.8vw, 3.2rem); line-height: 1.05; letter-spacing: -.02em; text-transform: uppercase; }
-.pitch h1 .x { color: var(--gold); background: none; -webkit-text-fill-color: var(--gold); }
-.pitch p { font-size: .95rem; color: #c9c9c9; }
-.pitch p b { color: var(--gold); }
-.tag { border-radius: 0; border-color: var(--rail); background: var(--vault); font-size: .78rem; text-transform: uppercase; color: var(--haze); }
-.tag b { color: var(--ink); }
-
-/* sections */
-.band h2 { font-family: var(--text); font-weight: 600; font-size: .95rem !important; text-transform: uppercase; letter-spacing: .08em; color: var(--gold); }
-.band h2 .x { background: none; color: var(--gold); -webkit-text-fill-color: var(--gold); }
-.band p { font-size: .8rem; color: #bdbdbd; }
-section[aria-labelledby="h-platform"] > .band { border-bottom: 1px solid var(--gold); padding-bottom: 6px; align-items: flex-end; }
-.panel { border-radius: 0; background: var(--vault); border: 1px solid var(--rail); padding: 0 14px 14px; }
-.panel h2, .panel .band h2 { font-family: var(--text); font-size: .82rem !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: .08em; color: #fff; line-height: 1.3; }
-.panel > h2, .pair > .panel > h2 { margin: 0 -14px 0; padding: 6px 14px; background: var(--bar); border-bottom: 1px solid #1d4590; }
-.panel > .band { margin: 0 -14px !important; padding: 4px 14px; background: var(--bar); border-bottom: 1px solid #1d4590; align-items: center; }
-.panel > .band h2 { color: #fff; }
-.panel .sub { font-size: .76rem; color: #a8a8a8; margin: 8px 0 12px; max-width: 90ch; }
-.pair { gap: 12px; margin-top: 12px; }
-.panel[style*="margin-top:20px"] { margin-top: 12px !important; }
-
-/* tiles and stats */
-.kpis { gap: 8px; margin-bottom: 0; }
-.kpi, .kpi.hot, .ptag, .ptag.hot, .atile, .atile.hot { border-radius: 0; background: var(--vault); border: 1px solid var(--rail); padding: 10px 12px; }
-.kpi.hot, .ptag.hot, .atile.hot { border-color: var(--gold); }
-.kpi .k, .atile .k, .ptag .w { color: var(--haze); font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 500; }
-.kpi .n, .atile .n, .ptag .p, .stat .n, .mini .n { font-family: var(--text); font-weight: 600; letter-spacing: -.03em; color: #fff; }
-.kpi .n { font-size: clamp(1.5rem, 2.2vw, 2rem); }
-.ptag .p { font-size: clamp(1.6rem, 2.6vw, 2.2rem); color: var(--gold); }
-.atile .n { font-size: clamp(1.4rem, 2vw, 1.9rem); }
-.kpi .s, .atile .s, .ptag .u, .stat .l, .stat .vs, .mini .l { font-size: .74rem; color: #a8a8a8; }
-.kpi .s b, .atile .s b, .ptag .u b, .stat .vs b { color: var(--gold); }
-.rail { border-color: var(--rail); background: var(--vault); border: 1px solid var(--rail); border-top: 0; }
-.stat { padding: 10px 12px; border-left-color: var(--rail); }
-.stat:first-child { padding-left: 12px; }
-.stat .n { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
-.stat .l { color: var(--haze); text-transform: uppercase; letter-spacing: .04em; }
-.seg, .duo .track, .mix, .split .seg { border-radius: 0; }
-.duo .track div, .prod .bar, .vfill { border-radius: 0; }
-.vfill.b { background: var(--gold); }
-.mini div { border-top-color: var(--rail); }
-
-/* controls */
-.chip { border-radius: 0; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; padding: 3px 9px; color: #d0d0d0; border-color: #555; background: #111; }
-.chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #000; }
-.chip:disabled { opacity: .5; }
-
-/* tables and tooltips */
-table { font-size: .8rem; }
-th { color: var(--haze); font-weight: 500; text-transform: uppercase; letter-spacing: .04em; font-size: .72rem; border-bottom-color: var(--gold); }
-td { border-bottom-color: #1c1c1c; padding: 7px 10px; }
-tr:hover td { background: #0f1a33; }
-tr.cards td { color: var(--cyan); }
-.ledger th { background: #000; }
-.tip { border-radius: 0; background: #000; border: 1px solid var(--gold); box-shadow: none; font-size: .74rem; }
-.tip .d { color: var(--gold); }
-.legend, .segkey, .duo .row, .split .lab, .prod, .vrow .t { font-size: .74rem; }
-.legend i, .prod .nm i { border-radius: 0; }
-footer { border-top: 1px solid var(--rail); padding-top: 10px; font-size: .72rem; color: #8a8a8a; }
-@media (max-width: 960px) { .stat { border-left: 0; } }
-.slabs { align-items: stretch; }
-.slab { display: flex; flex-direction: column; }
-.slab .card { flex: 1; }
-.chart svg rect, .kpi svg rect { rx: 0; ry: 0; }
-@media (max-width: 720px) { .top { position: static; } .fkeys a { padding: 3px 7px; } }
-section[aria-labelledby="h-platform"] { margin-top: clamp(20px, 3vw, 36px) !important; margin-bottom: 12px !important; }
-#h-implied { scroll-margin-top: 60px; }
-.panel h2, .band h2 { scroll-margin-top: 60px; }
-
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
 footer p { margin: 0 0 6px; }
@@ -340,15 +236,12 @@ footer p { margin: 0 0 6px; }
 <body>
 <div class="page">
   <header class="top">
-    <div class="brand"><b>GBDASH</b> <span>BREAK vs CARDS · RATIO MONITOR</span> <em id="clock"></em></div>
+    <div class="brand">Grail Break <span>ratio tracker</span></div>
     <div class="topright">
       <div class="basis"><span>$CARDS valuation</span><div class="chips" id="basischips" role="group" aria-label="$CARDS valuation basis"></div></div>
       <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
     </div>
   </header>
-  <nav class="fkeys" aria-label="Sections">
-    <a href="#h-platform"><b>1)</b> PLATFORM</a><a href="#h-implied"><b>2)</b> VALUATION</a><a href="#h-scen"><b>3)</b> SCENARIOS</a><a href="#h-daily"><b>4)</b> REVENUE</a><a href="#h-arpu"><b>5)</b> USERS</a><a href="#h-furnace"><b>6)</b> BURNS</a><a href="#h-ledger"><b>7)</b> LEDGER</a>
-  </nav>
 
   <section class="hero" aria-label="Valuation summary">
     <div class="slabs" id="slabs">
@@ -519,7 +412,7 @@ function tipFor(box) {
 
 function holoDefs(svg, id, vertical) {
   const g = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('y1', vertical ? 1 : 0).attr('x2', vertical ? 0 : 1).attr('y2', 0);
-  [['0%', css('--gold')], ['100%', css('--gold')]].forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c));
+  [['0%', css('--cyan')], ['50%', css('--violet')], ['100%', css('--gold')]].forEach(([o, c]) => g.append('stop').attr('offset', o).attr('stop-color', c));
 }
 
 /* $CARDS valuation basis: circulating market cap or fully diluted value. Applies to every $CARDS-dependent figure. */
@@ -697,8 +590,8 @@ function drawTrailing(rows, refMultiple) {
   svg.append('text').attr('x', W - m.r + 8).attr('y', ry).attr('fill', 'var(--haze)').text(`$CARDS ${pct(ref)}`);
   const area = d3.area(d => x(d.day), H - m.b, d => y(yld(d)));
   const g = svg.append('defs').append('linearGradient').attr('id', 'fade').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
-  g.append('stop').attr('offset', '0%').attr('stop-color', css('--gold')).attr('stop-opacity', .25);
-  g.append('stop').attr('offset', '100%').attr('stop-color', css('--gold')).attr('stop-opacity', 0);
+  g.append('stop').attr('offset', '0%').attr('stop-color', css('--violet')).attr('stop-opacity', .35);
+  g.append('stop').attr('offset', '100%').attr('stop-color', css('--violet')).attr('stop-opacity', 0);
   svg.append('path').datum(rows).attr('fill', 'url(#fade)').attr('d', area);
   const path = svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', 'url(#holo-h)').attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round').attr('d', d3.line(d => x(d.day), d => y(yld(d))));
   if (first && !reduce) { const L = path.node().getTotalLength(); path.attr('stroke-dasharray', `${L} ${L}`).attr('stroke-dashoffset', L).transition().duration(1400).delay(400).ease(d3.easeCubicInOut).attr('stroke-dashoffset', 0); }
@@ -910,7 +803,7 @@ function drawCumul(rows) {
   svg.append('text').attr('x', l).attr('y', vTop - 8).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Volume');
   svg.append('text').attr('x', l).attr('y', rTop - 10).attr('fill', 'var(--ink)').attr('font-weight', 600).text('Net revenue');
   const fade = (id, c) => { const g = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1); g.append('stop').attr('offset', '0%').attr('stop-color', c).attr('stop-opacity', .4); g.append('stop').attr('offset', '100%').attr('stop-color', c).attr('stop-opacity', 0); };
-  fade('fade-v', css('--cyan')); fade('fade-r', css('--gold'));
+  fade('fade-v', css('--violet')); fade('fade-r', css('--gold'));
   const curve = d3.curveMonotoneX;
   [[yv, vBot, 'volume', 'fade-v'], [yr, rBot, 'revenue', 'fade-r']].forEach(([y, base, f, fid], i) => {
     svg.append('path').datum(rows).attr('fill', `url(#${fid})`).attr('d', d3.area(d => x(d.day), base, d => y(d[f])).curve(curve));
@@ -1158,8 +1051,8 @@ function drawScenarios() {
   const fits = p => rad(p.y) >= (narrow ? 17 : 20);
   // Value (large) and a second line with the multiple and scenario (smaller), both sized from the radius.
   g.filter(fits).append('text').attr('text-anchor', 'middle').attr('fill', ink).attr('font-weight', 700).attr('font-variant-numeric', 'tabular-nums')
-    .attr('font-size', p => rad(p.y) * .31).attr('y', p => rad(p.y) > 34 ? -rad(p.y) * .04 : rad(p.y) * .13).text(p => usdM(p.y));
-  g.filter(p => rad(p.y) > 34).append('text').attr('text-anchor', 'middle').attr('fill', ink).attr('font-size', p => rad(p.y) * .15)
+    .attr('font-size', p => rad(p.y) * .36).attr('y', p => rad(p.y) > 34 ? -rad(p.y) * .04 : rad(p.y) * .13).text(p => usdM(p.y));
+  g.filter(p => rad(p.y) > 34).append('text').attr('text-anchor', 'middle').attr('fill', ink).attr('font-size', p => rad(p.y) * .19)
     .attr('y', p => rad(p.y) * .32).text(p => p.cur ? 'current' : `${F.times(p.x)} · ${p.bk === 'net' ? 'Net' : 'Gross'} ${VAL[p.v].short}`);
   // Circles too small for text get a label beside them.
   g.filter(p => !fits(p) && !p.cur && !narrow).append('text').attr('x', p => Math.max(rad(p.y), 4) + 4).attr('text-anchor', 'start').attr('y', p => Math.max(rad(p.y), 4) + 10).attr('fill', p => p.cur ? css('--gold') : 'var(--ink)').attr('font-size', 11)
@@ -1197,9 +1090,6 @@ async function load() {
 }
 load();
 setInterval(load, 5 * 60 * 1000);
-const clockFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-const tick = () => { const c = document.getElementById('clock'); if (c) c.textContent = clockFmt.format(new Date()).toUpperCase().replace(/,/g, '') + ' ET'; };
-tick(); setInterval(tick, 1000);
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
 </script>
 <script>
