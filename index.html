@@ -229,6 +229,18 @@ tr.cards td { color: var(--haze); }
 #g-overview .hero { margin-top: 12px; }
 #g-overview > section[aria-labelledby="h-platform"] { margin-top: clamp(32px, 5vw, 56px); }
 
+/* key multiples summary */
+#g-overview > .msum { margin-top: clamp(28px, 4vw, 48px); }
+.mcards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.mcard { background: var(--vault); border: 1px solid var(--rail); border-radius: 18px; padding: 16px 18px 14px; display: flex; flex-direction: column; min-width: 0; }
+.mcard .k { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.mcard .def { color: var(--haze); font-size: .78rem; margin-top: 2px; }
+.mcard .big { font-family: var(--display); font-weight: 900; font-size: clamp(2.6rem, 4.4vw, 3.6rem); line-height: 1; margin: 12px 0 2px; font-variant-numeric: tabular-nums; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mcard .rel { font-size: .9rem; margin-bottom: 14px; }
+.mcard .vbars { margin-top: 0; }
+.mcard .note { color: var(--haze); font-size: .72rem; margin-top: auto; padding-top: 12px; }
+@media (max-width: 960px) { .mcards { grid-template-columns: 1fr; } }
+
 .err { color: #ff9a9e; }
 footer { margin-top: 40px; color: var(--haze); font-size: .8rem; max-width: 80ch; }
 footer p { margin: 0 0 6px; }
@@ -295,6 +307,10 @@ footer p { margin: 0 0 6px; }
       <div class="tags" id="tags"></div>
     </div>
   </section>
+<section class="msum" aria-labelledby="h-msum">
+  <div class="band" style="margin:0 0 14px"><h2 id="h-msum" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Key multiples vs $CARDS</h2><p id="msum-sub"></p></div>
+  <div class="mcards" id="mcards"></div>
+</section>
 <section aria-labelledby="h-platform">
     <div class="band">
       <h2 id="h-platform">Platform metrics</h2>
@@ -562,6 +578,7 @@ function render() {
   drawDaily(inWin(D.daily));
   drawTrailing(inWin(D.trailing), c.cap_to_revenue);
   if (D.cumulative) drawCumul(inWin(D.cumulative));
+  renderMultSum(D);
   if (D.arpu && D.arpu.cards_reference) renderLikeForLike(D);
   if (D.arpu && D.arpu.arpu !== null) { renderArpu(D.arpu); drawArpu({ ...D.arpu, series: inWin(D.arpu.series), daily: inWin(D.arpu.daily) }); }
   if (D.burns && D.burns.length && burnsInWin(D.burns).length) { drawBurnline(burnsInWin(D.burns), D.supply); drawLedger(); }
@@ -931,19 +948,53 @@ function drawLedger() {
 }
 
 /* ---------- Like-for-like ARPU: $BREAK (live, since launch) vs $CARDS (latest published quarter) ---------- */
-function renderLikeForLike(D) {
+function perBuyer(D) {
   const A = D.arpu, C = A.cards_reference, T = D.totals;
   const perBuyerYr = (v, buyers, days) => v / buyers / days * 365;
-  const B = {
-    buy: perBuyerYr(A.paid_volume, A.buyers, A.live_days),
-    net: perBuyerYr(T.revenue, A.buyers, A.live_days),
-    take: T.revenue / A.paid_volume
+  return {
+    B: { buy: perBuyerYr(A.paid_volume, A.buyers, A.live_days), net: perBuyerYr(T.revenue, A.buyers, A.live_days), take: T.revenue / A.paid_volume },
+    K: { buy: perBuyerYr(C.pack_sales, C.buyers, C.days), net: perBuyerYr(C.gross_profit, C.buyers, C.days), take: C.gross_profit / C.pack_sales }
   };
-  const K = {
-    buy: perBuyerYr(C.pack_sales, C.buyers, C.days),
-    net: perBuyerYr(C.gross_profit, C.buyers, C.days),
-    take: C.gross_profit / C.pack_sales
-  };
+}
+
+/* ---------- Key multiples summary (Overview) ---------- */
+function renderMultSum(D) {
+  const R = Object.fromEntries(D.ratios.map(r => [r.key, r])), b = R.break_7d, c = R.cards_30d;
+  if (!b || !c) return;
+  const mx = v => (v >= 10 ? d3.format('.1f')(v) : v >= 1 ? d3.format('.2f')(v) : d3.format('.3~r')(v)) + 'x';
+  const capWord = CAP_WORD();
+  const items = [
+    { k: 'Gross revenue', def: `${capWord === 'FDV' ? 'Value' : 'Market cap'} ÷ annualized volume`, b: 1 / (b.gross_to_cap * 365), c: 1 / (c.gross_to_cap * 365), fmt: mx, lowerIsCheaper: true,
+      note: `$BREAK last 7 days, $CARDS last 30 days on its ${capWord}.` },
+    { k: 'Net revenue', def: `${capWord === 'FDV' ? 'Value' : 'Market cap'} ÷ annualized net revenue`, b: b.cap_to_revenue, c: c.cap_to_revenue, fmt: mx, lowerIsCheaper: true,
+      note: `$BREAK last 7 days, $CARDS last 30 days on its ${capWord}.` }
+  ];
+  if (D.arpu && D.arpu.cards_reference) {
+    const P = perBuyer(D), C = D.arpu.cards_reference;
+    items.push({ k: 'ARPU', def: 'Annualized net revenue per buyer', b: P.B.net, c: P.K.net, fmt: F.usd, lowerIsCheaper: false,
+      note: `$BREAK since launch (live); $CARDS ${C.period} gross profit per buyer. Not affected by the ${capWord} switch.` });
+  }
+  document.getElementById('msum-sub').textContent = `$BREAK against Collector Crypt on three measures. For the two valuation multiples, lower means $BREAK is priced lower relative to what it generates. $CARDS valued on its ${capWord}.`;
+  document.getElementById('mcards').replaceChildren(...items.map(it => {
+    const card = el('div', 'mcard'), ratio = it.b >= it.c ? it.b / it.c : it.c / it.b, higher = it.b >= it.c;
+    card.append(el('div', 'k', it.k), el('div', 'def', it.def), el('div', 'big', F.times(ratio)));
+    const rel = el('div', 'rel');
+    rel.append(it.lowerIsCheaper ? `$BREAK's multiple is ${higher ? 'higher' : 'lower'} than $CARDS` : `$BREAK is ${higher ? 'higher' : 'lower'} than $CARDS`);
+    card.append(rel);
+    const bars = el('div', 'vbars'), m = Math.max(it.b, it.c);
+    [[it.b, '$BREAK', 'b'], [it.c, '$CARDS', 'c']].forEach(([v, name, cls]) => {
+      const bar = el('div', 'vbar'), tr = el('div', 'vtrack'), fill = el('div', 'vfill ' + cls);
+      fill.style.width = `calc((100% - 4.5rem) * ${Math.max(v / m, 0.02)})`;
+      tr.append(fill, el('span', 'vval', it.fmt(v))); bar.append(el('span', '', name), tr); bars.append(bar);
+    });
+    card.append(bars, el('div', 'note', it.note));
+    return card;
+  }));
+}
+
+function renderLikeForLike(D) {
+  const A = D.arpu, C = A.cards_reference, T = D.totals;
+  const { B, K } = perBuyer(D);
   const d1 = d3.format('.1f');
   document.getElementById('l4l-sub').textContent = `Both platforms on the same basis: totals for a period, divided by the wallets that bought in it and by the days in it, then annualized. $BREAK: since launch (${d1(A.live_days)} days, ${F.int(A.buyers)} buyers), live. $CARDS: ${C.period} (${C.days} days, ${F.int(C.buyers)} buyers), from ${C.source}. Differences that remain: $BREAK net revenue includes $BREAK trading fees, while the $CARDS figure is gross profit on packs; and $BREAK's period is much shorter, with a small buyer base.`;
   const rows = [
