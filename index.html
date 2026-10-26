@@ -961,26 +961,28 @@ function perBuyer(D) {
 function renderMultSum(D) {
   const R = Object.fromEntries(D.ratios.map(r => [r.key, r])), b = R.break_7d, c = R.cards_30d;
   if (!b || !c) return;
-  const mx = v => (v >= 10 ? d3.format('.1f')(v) : v >= 1 ? d3.format('.2f')(v) : d3.format('.3~r')(v)) + 'x';
-  const capWord = CAP_WORD();
+  const perDollar = v => '$' + (v >= 100 ? d3.format(',.0f')(v) : d3.format('.2f')(v));
+  const capWord = CAP_WORD(), capName = capWord === 'FDV' ? 'FDV' : 'market cap';
+  // Every measure here is "higher is better": what each platform generates per dollar of valuation, or per buyer.
   const items = [
-    { k: 'Gross revenue', def: `${capWord === 'FDV' ? 'Value' : 'Market cap'} ÷ annualized volume`, b: 1 / (b.gross_to_cap * 365), c: 1 / (c.gross_to_cap * 365), fmt: mx, lowerIsCheaper: true,
-      note: `$BREAK last 7 days, $CARDS last 30 days on its ${capWord}.` },
-    { k: 'Net revenue', def: `${capWord === 'FDV' ? 'Value' : 'Market cap'} ÷ annualized net revenue`, b: b.cap_to_revenue, c: c.cap_to_revenue, fmt: mx, lowerIsCheaper: true,
-      note: `$BREAK last 7 days, $CARDS last 30 days on its ${capWord}.` }
+    { k: 'Gross revenue', def: `Annual volume per $1 of market cap`, b: b.gross_to_cap * 365, c: c.gross_to_cap * 365, fmt: perDollar,
+      say: (r, more) => `$BREAK generates ${r} ${more ? 'more' : 'less'} volume per dollar of market cap than $CARDS`,
+      note: `$BREAK last 7 days on its market cap; $CARDS last 30 days on its ${capName}.` },
+    { k: 'Net revenue', def: `Annual net revenue per $1 of market cap`, b: 1 / b.cap_to_revenue, c: 1 / c.cap_to_revenue, fmt: perDollar,
+      say: (r, more) => `$BREAK generates ${r} ${more ? 'more' : 'less'} net revenue per dollar of market cap than $CARDS`,
+      note: `$BREAK last 7 days on its market cap; $CARDS last 30 days on its ${capName}.` }
   ];
   if (D.arpu && D.arpu.cards_reference) {
     const P = perBuyer(D), C = D.arpu.cards_reference;
-    items.push({ k: 'ARPU', def: 'Annualized net revenue per buyer', b: P.B.net, c: P.K.net, fmt: F.usd, lowerIsCheaper: false,
-      note: `$BREAK since launch (live); $CARDS ${C.period} gross profit per buyer. Not affected by the ${capWord} switch.` });
+    items.push({ k: 'ARPU', def: 'Annual net revenue per buyer', b: P.B.net, c: P.K.net, fmt: F.usd,
+      say: (r, more) => `$BREAK earns ${r} ${more ? 'more' : 'less'} net revenue per buyer than $CARDS`,
+      note: `$BREAK since launch (live); $CARDS ${C.period} gross profit per buyer. Not affected by the market cap / FDV switch.` });
   }
-  document.getElementById('msum-sub').textContent = `$BREAK against Collector Crypt on three measures. For the two valuation multiples, lower means $BREAK is priced lower relative to what it generates. $CARDS valued on its ${capWord}.`;
+  document.getElementById('msum-sub').textContent = `How much more $BREAK generates than Collector Crypt, relative to its valuation and per buyer. Higher is better on all three. $CARDS valued on its ${capName}.`;
   document.getElementById('mcards').replaceChildren(...items.map(it => {
-    const card = el('div', 'mcard'), ratio = it.b >= it.c ? it.b / it.c : it.c / it.b, higher = it.b >= it.c;
-    card.append(el('div', 'k', it.k), el('div', 'def', it.def), el('div', 'big', F.times(ratio)));
-    const rel = el('div', 'rel');
-    rel.append(it.lowerIsCheaper ? `$BREAK's multiple is ${higher ? 'higher' : 'lower'} than $CARDS` : `$BREAK is ${higher ? 'higher' : 'lower'} than $CARDS`);
-    card.append(rel);
+    const card = el('div', 'mcard'), higher = it.b >= it.c, ratio = higher ? it.b / it.c : it.c / it.b;
+    card.append(el('div', 'k', it.k), el('div', 'def', it.def), el('div', 'big', F.times(ratio) + (higher ? '' : ' less')));
+    card.append(el('div', 'rel', it.say(F.times(ratio), higher)));
     const bars = el('div', 'vbars'), m = Math.max(it.b, it.c);
     [[it.b, '$BREAK', 'b'], [it.c, '$CARDS', 'c']].forEach(([v, name, cls]) => {
       const bar = el('div', 'vbar'), tr = el('div', 'vtrack'), fill = el('div', 'vfill ' + cls);
