@@ -296,7 +296,7 @@ footer p { margin: 0 0 6px; }
 
   <section class="panel" style="margin-bottom:20px" aria-labelledby="h-scen">
     <h2 id="h-scen">Valuation scenarios, last 7 days</h2>
-    <p class="sub" id="scen-sub">$BREAK's implied market cap from its last 7 full days, valued on gross volume or net revenue at the multiple $CARDS trades at on its market cap or its FDV. The horizontal axis is each scenario as a multiple of the current market cap; the gold dashed line is today's market cap.</p>
+    <p class="sub" id="scen-sub">$BREAK's implied market cap from its last 7 full days, valued on gross volume or net revenue at the multiple $CARDS trades at on its market cap or its FDV. The horizontal axis is each scenario as a multiple of the current market cap; the gold dashed line is today's market cap. Circle area is proportional to market cap.</p>
     <div class="legend" id="scenkey" style="margin-bottom:12px"></div>
     <div class="chart" id="scenviz"></div>
   </section>
@@ -1010,12 +1010,14 @@ function drawScenarios() {
 
   document.getElementById('scenkey').replaceChildren(...[
     ...Object.keys(VAL).filter(v => sets[v]).map(v => { const d = el('div'); const i = el('i'); i.style.background = VAL[v].color; i.style.borderRadius = '50%'; d.append(i, el('span', '', VAL[v].name)); return d; }),
-    ...Object.keys(BASIS).map(bk => { const d = el('div'); const i = el('i'); i.style.background = 'transparent'; i.style.border = '1.5px solid var(--haze)'; i.style.borderRadius = bk === 'net' ? '50%' : '2px'; if (bk === 'gross') i.style.transform = 'translateY(1px) rotate(45deg)'; d.append(i, el('span', '', BASIS[bk].name + (bk === 'net' ? ' (circle)' : ' (diamond)'))); return d; }),
+    ...Object.keys(BASIS).map(bk => { const d = el('div'); const i = el('i'); i.style.borderRadius = '50%'; i.style.border = '1.5px solid var(--haze)'; i.style.background = bk === 'net' ? 'var(--haze)' : 'transparent'; d.append(i, el('span', '', BASIS[bk].name + (bk === 'net' ? ' (filled)' : ' (outlined)'))); return d; }),
+    (() => { const d = el('div'); d.append(el('span', '', 'Circle area is proportional to market cap')); return d; })(),
     (() => { const d = el('div'); const i = el('i'); i.style.background = css('--gold'); d.append(i, el('span', '', 'Current market cap (1x)'), el('b', '', usdM(cap))); return d; })()
   ]);
 
   const W = Math.max(box.clientWidth, 300), narrow = W < 560, H = narrow ? 360 : 400;
-  const m = { l: narrow ? 56 : 68, r: narrow ? 18 : 28, t: 18, b: 46 };
+  const rMax = narrow ? 36 : 66;
+  const m = { l: narrow ? 56 : 68, r: rMax + 8, t: rMax + 8, b: 46 };
   const svg = svgIn(box, W, H);
   const xMax = d3.max(pts, p => p.x) * 1.12;
   const x = d3.scaleLinear([0, xMax], [m.l, W - m.r]).nice();
@@ -1033,23 +1035,32 @@ function drawScenarios() {
 
   // Current market cap at 1x.
   svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(cap)).attr('y2', y(cap)).attr('stroke', css('--gold')).attr('stroke-width', 1.5).attr('stroke-dasharray', '6 4').attr('stroke-opacity', .8);
-  svg.append('circle').attr('cx', x(1)).attr('cy', y(cap)).attr('r', 6).attr('fill', css('--gold')).attr('stroke', 'var(--night)').attr('stroke-width', 1.5);
   svg.append('text').attr('x', W - m.r - 4).attr('y', y(cap) - 8).attr('text-anchor', 'end').attr('fill', css('--gold')).attr('font-weight', 600).text(`Current market cap ${usdM(cap)}`);
 
-  const sym = d3.symbol().size(narrow ? 130 : 170);
-  const g = svg.append('g').selectAll('path').data(pts).join('path')
-    .attr('transform', p => `translate(${x(p.x)},${y(p.y)})`)
-    .attr('d', p => sym.type(p.bk === 'net' ? d3.symbolCircle : d3.symbolDiamond)())
-    .attr('fill', p => VAL[p.v].color).attr('stroke', 'var(--night)').attr('stroke-width', 1.5).style('cursor', 'pointer');
+  // Circle area is proportional to market cap; the text inside scales with the circle.
+  const all = [{ cur: true, x: 1, y: cap }, ...pts];
+  const rad = d3.scaleSqrt([0, d3.max(all, p => p.y)], [0, rMax]);
+  const g = svg.append('g').selectAll('g').data(all.slice().sort((a, z) => z.y - a.y)).join('g')
+    .attr('transform', p => `translate(${x(p.x)},${y(p.y)})`).style('cursor', 'pointer');
+  const solid = p => p.cur || p.bk === 'net';
+  const fillOf = p => p.cur ? css('--gold') : VAL[p.v].color;
+  g.append('circle').attr('r', p => Math.max(rad(p.y), 4))
+    .attr('fill', p => solid(p) ? fillOf(p) : 'rgba(19,23,53,.6)').attr('fill-opacity', p => solid(p) ? .92 : 1)
+    .attr('stroke', p => solid(p) ? 'var(--night)' : fillOf(p)).attr('stroke-width', p => solid(p) ? 1.5 : 2.5);
+  const ink = p => solid(p) ? 'var(--night)' : 'var(--ink)';
+  const fits = p => rad(p.y) >= (narrow ? 17 : 20);
+  // Value (large) and a second line with the multiple and scenario (smaller), both sized from the radius.
+  g.filter(fits).append('text').attr('text-anchor', 'middle').attr('fill', ink).attr('font-weight', 700).attr('font-variant-numeric', 'tabular-nums')
+    .attr('font-size', p => rad(p.y) * .36).attr('y', p => rad(p.y) > 34 ? -rad(p.y) * .04 : rad(p.y) * .13).text(p => usdM(p.y));
+  g.filter(p => rad(p.y) > 34).append('text').attr('text-anchor', 'middle').attr('fill', ink).attr('font-size', p => rad(p.y) * .19)
+    .attr('y', p => rad(p.y) * .32).text(p => p.cur ? 'current' : `${F.times(p.x)} · ${p.bk === 'net' ? 'Net' : 'Gross'} ${VAL[p.v].short}`);
+  // Circles too small for text get a label beside them.
+  g.filter(p => !fits(p) && !p.cur && !narrow).append('text').attr('x', p => Math.max(rad(p.y), 4) + 4).attr('text-anchor', 'start').attr('y', p => Math.max(rad(p.y), 4) + 10).attr('fill', p => p.cur ? css('--gold') : 'var(--ink)').attr('font-size', 11)
+    .text(p => p.cur ? `${usdM(p.y)} current` : `${usdM(p.y)} · ${F.times(p.x)}`);
   if (first && !reduce) g.attr('opacity', 0).transition().duration(600).delay((p, i) => 150 + i * 80).attr('opacity', 1);
-  // Labels go right of points in the left half and left of points in the right half, so they stay inside the chart.
-  const right = p => x(p.x) < (m.l + W - m.r) / 2;
-  svg.append('g').selectAll('text').data(pts).join('text')
-    .attr('x', p => x(p.x) + (right(p) ? 14 : -14)).attr('y', p => y(p.y) + 4).attr('text-anchor', p => right(p) ? 'start' : 'end').attr('fill', 'var(--ink)').attr('font-size', narrow ? 10.5 : 12)
-    .text(p => `${narrow ? (p.bk === 'net' ? 'Net' : 'Gross') : BASIS[p.bk].name}, ${VAL[p.v].short}: ${usdM(p.y)} · ${F.times(p.x)}`);
 
   const tip = tipFor(box);
-  g.on('mousemove', (e, p) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, `Last 7 days · ${BASIS[p.bk].name} · ${VAL[p.v].name}`, [`Implied cap ${usdM(p.y)}`, `${F.times(p.x)} the current market cap`, `Implied price ${F.price(price * p.x)}`]); })
+  g.on('mousemove', (e, p) => { const [px, py] = d3.pointer(e, box); if (p.cur) { tip.show(px, py, 'Current market cap', [usdM(p.y)]); return; } tip.show(px, py, `Last 7 days · ${BASIS[p.bk].name} · ${VAL[p.v].name}`, [`Implied cap ${usdM(p.y)}`, `${F.times(p.x)} the current market cap`, `Implied price ${F.price(price * p.x)}`]); })
     .on('mouseleave', () => tip.hide());
   svg.attr('role', 'img').attr('aria-label', `Implied $BREAK market caps from the last 7 days, as multiples of the current ${usdM(cap)}`);
 }
