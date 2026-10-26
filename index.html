@@ -281,6 +281,19 @@ footer p { margin: 0 0 6px; }
     <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 
+  <div class="pair" style="margin:0 0 20px">
+    <section class="panel" aria-labelledby="h-trail">
+      <h2 id="h-trail">Trailing 7-day revenue yield</h2>
+      <p class="sub">Annualized net revenue from each day's trailing 7 days, as a share of current market cap, for the last 7 days. The dashed line is the $CARDS 30-day figure.</p>
+      <div class="chart" id="trail"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-vs">
+      <h2 id="h-vs">$BREAK vs. $CARDS</h2>
+      <p class="sub" id="vs-sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
+      <div class="versus" id="versus"></div>
+    </section>
+  </div>
+
   <section class="panel" style="margin-bottom:20px" aria-labelledby="h-scen">
     <h2 id="h-scen">Valuation scenarios, last 7 days</h2>
     <p class="sub" id="scen-sub">$BREAK's implied market cap from its last 7 full days, valued on gross volume or net revenue at the multiple $CARDS trades at on its market cap or its FDV. The horizontal axis is each scenario as a multiple of the current market cap; the gold dashed line is today's market cap.</p>
@@ -304,19 +317,6 @@ footer p { margin: 0 0 6px; }
       <h2 id="h-burnline">$BREAK burned, running total</h2>
       <p class="sub">Running total of $BREAK burned since launch, shown for the last 7 days. Dot size is USD spent; the right axis shows the share of the original 1B supply.</p>
       <div class="chart" id="burnline"></div>
-    </section>
-  </div>
-
-  <div class="pair">
-    <section class="panel" aria-labelledby="h-trail">
-      <h2 id="h-trail">Trailing 7-day revenue yield</h2>
-      <p class="sub">Annualized net revenue from each day's trailing 7 days, as a share of current market cap, for the last 7 days. The dashed line is the $CARDS 30-day figure.</p>
-      <div class="chart" id="trail"></div>
-    </section>
-    <section class="panel" aria-labelledby="h-vs">
-      <h2 id="h-vs">$BREAK vs. $CARDS</h2>
-      <p class="sub" id="vs-sub">$BREAK, last 7 full days; Collector Crypt, last 30 days. Each pair has its own scale.</p>
-      <div class="versus" id="versus"></div>
     </section>
   </div>
 
