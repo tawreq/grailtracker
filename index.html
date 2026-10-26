@@ -331,7 +331,7 @@ footer p { margin: 0 0 6px; }
     <p class="sub" id="implied-sub"></p>
     <div class="chart" id="impliedviz"></div>
     <div class="tagsrow" id="ptags" style="margin-top:18px"></div>
-    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Net / cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
+    <div class="tablewrap"><table><thead><tr><th>Window</th><th>Volume / day</th><th>Net / day</th><th>Margin</th><th>Days of net revenue to equal cap</th><th>Revenue yield</th></tr></thead><tbody id="ratios"></tbody></table></div>
   </section>
 <div class="pair">
 <section class="panel" aria-labelledby="h-trail">
@@ -541,16 +541,19 @@ function render() {
     return s;
   }));
 
+  const daysFmt = v => (v >= 10 ? d3.format(',.0f')(v) : d3.format('.1f')(v)) + ' days';
+  // [field, label, format, word when $BREAK's value is larger, word when smaller]
   const pairs = [
-    ['gross_to_cap', 'Daily volume / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
-    ['net_to_cap', 'Daily net revenue / market cap', F.pct, (a, z) => `${F.times(z / a)} higher`],
-    ['margin', 'Net margin on volume', F.pct, (a, z) => `${F.times(a / z)} lower`],
-    ['revenue_yield', 'Revenue yield (annual net revenue / market cap)', F.yld, (a, z) => `${F.times(z / a)} higher`]
+    ['vol_days', 'Days of volume to equal market cap', daysFmt, 'more days', 'fewer days'],
+    ['net_days', 'Days of net revenue to equal market cap', daysFmt, 'more days', 'fewer days'],
+    ['margin', 'Net margin on volume', F.pct, 'higher', 'lower'],
+    ['revenue_yield', 'Revenue yield (annual net revenue / market cap)', F.yld, 'higher', 'lower']
   ];
-  [b, c].forEach(r => { r.revenue_yield = yieldOf(r); });
-  document.getElementById('versus').replaceChildren(...pairs.map(([f, t, fmt, say]) => {
+  [b, c].forEach(r => { r.revenue_yield = yieldOf(r); r.vol_days = 1 / r.gross_to_cap; r.net_days = 1 / r.net_to_cap; });
+  const say = (cv, bv, up, down) => bv >= cv ? `${F.times(bv / cv)} ${up}` : `${F.times(cv / bv)} ${down}`;
+  document.getElementById('versus').replaceChildren(...pairs.map(([f, t, fmt, up, down]) => {
     const row = el('div', 'vrow'), head = el('div', 't');
-    head.append(el('span', '', t), el('span', '', '$BREAK ' + say(c[f], b[f])));
+    head.append(el('span', '', t), el('span', '', '$BREAK ' + say(c[f], b[f], up, down)));
     const bars = el('div', 'vbars'), mx = Math.max(c[f], b[f]);
     [[b, '$BREAK', 'b'], [c, '$CARDS', 'c']].forEach(([r, name, cls]) => {
       const bar = el('div', 'vbar'), tr = el('div', 'vtrack'), fill = el('div', 'vfill ' + cls);
@@ -562,7 +565,7 @@ function render() {
 
   document.getElementById('ratios').replaceChildren(...D.ratios.map(r => {
     const tr = el('tr', r.key === 'cards_30d' ? 'cards' : '');
-    [r.key === 'cards_30d' ? `${r.label} (${CAP_WORD()})` : r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), F.pct(r.net_to_cap), F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
+    [r.key === 'cards_30d' ? `${r.label} (${CAP_WORD()})` : r.label, F.usd(r.gross_day), F.usd(r.net_day), F.pct(r.margin), (1 / r.net_to_cap >= 10 ? d3.format(',.0f')(1 / r.net_to_cap) : d3.format('.1f')(1 / r.net_to_cap)) + ' days', F.yld(yieldOf(r))].forEach(v => tr.append(el('td', '', v)));
     return tr;
   }));
 
