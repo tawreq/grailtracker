@@ -480,8 +480,9 @@ function holoDefs(svg, id, vertical) {
 }
 
 /* $CARDS valuation basis: circulating market cap or fully diluted value. Applies to every $CARDS-dependent figure. */
+// Always opens on market cap; FDV applies only for the current visit.
 let CARDS_BASIS = 'mc';
-try { if (localStorage.getItem('cardsBasis') === 'fdv') CARDS_BASIS = 'fdv'; } catch (e) {}
+try { localStorage.removeItem('cardsBasis'); } catch (e) {}
 const CAP_WORD = () => CARDS_BASIS === 'fdv' ? 'FDV' : 'market cap';
 function viewData() {
   if (!DATA) return null;
@@ -494,7 +495,7 @@ function renderBasisChips() {
   box.replaceChildren(...[['mc', 'Market cap'], ['fdv', 'FDV']].map(([k, t]) => {
     const b = el('button', 'chip', t); b.type = 'button'; b.disabled = !has; b.setAttribute('aria-pressed', String(CARDS_BASIS === k));
     if (has) b.title = `${t}: ${F.usd(DATA.cards_basis[k].cardsCap)}`;
-    b.onclick = () => { if (CARDS_BASIS === k) return; CARDS_BASIS = k; try { localStorage.setItem('cardsBasis', k); } catch (e) {} render(); };
+    b.onclick = () => { if (CARDS_BASIS === k) return; CARDS_BASIS = k; render(); };
     return b;
   }));
 }
