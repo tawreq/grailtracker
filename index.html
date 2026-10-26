@@ -526,11 +526,13 @@ function render() {
     tag('Implied market cap at $CARDS yield', usdM(I.break_7d.implied_cap)),
     tag('Liquidity', D.liquidity ? F.usd(D.liquidity) : '–'));
 
+  // Market cap divided by daily net revenue / volume: how many days of each it takes to equal the valuation.
+  const days = v => (v >= 10 ? d3.format(',.0f')(v) : d3.format('.1f')(v)) + ' days';
   const stats = [
     [F.usd(b.market_cap), 'Market cap', null],
     [F.usd(b.net_day), 'Net revenue per day, last 7 days', null],
-    [F.pct(b.net_to_cap), 'Daily net revenue / market cap', F.pct(c.net_to_cap)],
-    [F.pct(b.gross_to_cap), 'Daily volume / market cap', F.pct(c.gross_to_cap)],
+    [days(1 / b.net_to_cap), 'Days of net revenue to equal market cap', days(1 / c.net_to_cap)],
+    [days(1 / b.gross_to_cap), 'Days of volume to equal market cap', days(1 / c.gross_to_cap)],
     [F.pct(b.margin), 'Net margin on volume', F.pct(c.margin)]
   ];
   document.getElementById('rail').replaceChildren(...stats.map(([n, l, vs]) => {
