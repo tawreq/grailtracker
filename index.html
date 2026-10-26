@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Grail Break Ratio Tracker</title>
 <meta name="description" content="Live valuation ratios for Grail Break ($BREAK) against Collector Crypt ($CARDS).">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gbdash.app/">
+<meta property="og:title" content="GB Dash: Grail Break vs Collector Crypt">
+<meta property="og:description" content="Live valuation, revenue, user and burn metrics for Grail Break ($BREAK), compared with Collector Crypt ($CARDS).">
+<meta property="og:image" content="https://gbdash.app/api/card">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="GB Dash: Grail Break vs Collector Crypt">
+<meta name="twitter:description" content="Live valuation, revenue, user and burn metrics for $BREAK vs $CARDS.">
+<meta name="twitter:image" content="https://gbdash.app/api/card">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -42,6 +53,9 @@ a { color: var(--cyan); }
 .brand { font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: .01em; }
 .brand span { color: var(--haze); font-weight: 500; }
 .live { display: flex; align-items: center; gap: 8px; color: var(--haze); font-size: .875rem; }
+.xlink { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; font-size: .875rem; border: 1px solid var(--rail); border-radius: 999px; padding: 4px 12px; }
+.xlink:hover { border-color: var(--cyan); }
+.xlink svg { width: 14px; height: 14px; fill: currentColor; }
 .topright { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
 .basis { display: flex; align-items: center; gap: 10px; color: var(--haze); font-size: .875rem; }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(127,227,240,.6); }
@@ -276,6 +290,7 @@ footer p { margin: 0 0 6px; }
     <div class="brand">Grail Break <span>ratio tracker</span></div>
     <div class="topright">
       <div class="basis"><span>$CARDS valuation</span><div class="chips" id="basischips" role="group" aria-label="$CARDS valuation basis"></div></div>
+      <a class="xlink" id="xlink" hidden target="_blank" rel="noopener"></a>
       <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
     </div>
   </header>
@@ -434,6 +449,7 @@ footer p { margin: 0 0 6px; }
   </section>
 
   <footer>
+    <p id="xfoot" hidden></p>
     <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch at the top chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
@@ -1243,6 +1259,18 @@ async function load() {
     stamp.textContent = DATA ? 'Showing the last update; the latest refresh failed' : 'Live data unavailable';
     if (!DATA) { const p = document.getElementById('pitch'); p.replaceChildren(el('span', 'err', `Couldn't load live data: ${e.message}`)); }
   }
+}
+// X account: set the handle here (without @) once the account exists.
+const X_HANDLE = '';
+if (X_HANDLE) {
+  const url = 'https://x.com/' + X_HANDLE;
+  const a = document.getElementById('xlink');
+  a.href = url; a.hidden = false;
+  a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+  a.append('@' + X_HANDLE);
+  const f = document.getElementById('xfoot'); f.hidden = false;
+  const fl = document.createElement('a'); fl.href = url; fl.target = '_blank'; fl.rel = 'noopener'; fl.textContent = '@' + X_HANDLE;
+  f.append('Daily metrics posted on X: ', fl, '.');
 }
 load();
 setInterval(load, 5 * 60 * 1000);

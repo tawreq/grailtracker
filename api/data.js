@@ -148,7 +148,8 @@ function computeAll(raw) {
   };
 }
 
-async function handler(req, res) {
+// Fetches every source and computes the dashboard data. Shared by the page, the image and the daily post.
+async function getData() {
   const keys = Object.keys(SOURCES);
   const results = await Promise.allSettled(keys.map(k => getJson(SOURCES[k])));
   const raw = {}, errors = [];
@@ -159,13 +160,24 @@ async function handler(req, res) {
   try {
     const out = computeAll(raw);
     out.errors = errors;
+    return out;
+  } catch (e) {
+    e.errors = errors;
+    throw e;
+  }
+}
+
+async function handler(req, res) {
+  try {
+    const out = await getData();
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).json(out);
   } catch (e) {
     res.setHeader('Cache-Control', 'no-store');
-    res.status(502).json({ error: e.message, errors });
+    res.status(502).json({ error: e.message, errors: e.errors || [] });
   }
 }
 
 module.exports = handler;
 module.exports.computeAll = computeAll;
+module.exports.getData = getData;
