@@ -1,10 +1,15 @@
-// GET /api/card: a 1200x675 PNG of the day's key GB Dash metrics, from live data.
+// GET /api/card: a 1200x675 PNG of the day's key Grail Dash metrics, from live data.
 // Used for the daily X post and as the share preview image for gbdash.app.
+import fs from 'fs';
 import { ImageResponse } from '@vercel/og';
 import data from './data.js';
 import summary from './_summary.js';
 
 const { summarize, fmt } = summary;
+
+// Grail Dash icon for the card header, embedded as a data URL.
+let ICON = null;
+try { ICON = 'data:image/png;base64,' + fs.readFileSync(new URL('../assets/grail-dash-icon.png', import.meta.url)).toString('base64'); } catch (e) {}
 const C = { night: '#131735', vault: '#1b2050', rail: '#2d3470', ink: '#eef0ff', haze: '#9ea5d6', cyan: '#7fe3f0', violet: '#b69cff', gold: '#f2c66d' };
 
 // Minimal element builder (the image renderer takes React-style element objects).
@@ -22,7 +27,8 @@ export function cardElement(S) {
   return h('div', { width: 1200, height: 675, flexDirection: 'column', background: C.night, color: C.ink, padding: '40px 48px', fontFamily: 'sans-serif' },
     h('div', { justifyContent: 'space-between', alignItems: 'baseline' },
       h('div', { alignItems: 'baseline' },
-        h('div', { fontSize: 34, fontWeight: 700 }, 'GB Dash'),
+        ICON ? { type: 'img', key: null, props: { src: ICON, width: 40, height: 40, style: { marginRight: 12, alignSelf: 'center' } } } : null,
+        h('div', { fontSize: 34, fontWeight: 700 }, 'Grail Dash'),
         h('div', { fontSize: 28, color: C.haze, marginLeft: 16 }, `Grail Break daily metrics${S.day ? ' · ' + f.dayLabel(S.day) : ''}`)),
       h('div', { fontSize: 24, color: C.haze }, '$BREAK vs $CARDS')),
     h('div', { alignItems: 'baseline', marginTop: 26 },
