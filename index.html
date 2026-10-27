@@ -63,7 +63,7 @@ a { color: var(--cyan); }
 .top.stuck { padding-top: 8px; padding-bottom: 8px; }
 .top.stuck .brand img { height: clamp(40px, 4vw, 52px); }
 .top.stuck .brand span { display: none; }
-@media (max-width: 1360px) { .brand span { display: none; } }
+@media (max-width: 1600px) { .brand span { display: none; } }
 @media (max-width: 960px) {
   .top { flex-wrap: wrap; justify-content: space-between; padding-bottom: 0; }
   .top.stuck { padding-bottom: 0; }
@@ -76,6 +76,12 @@ a { color: var(--cyan); }
 .xlink:hover { border-color: var(--cyan); }
 .xlink[hidden] { display: none; }
 .xlink svg { width: 14px; height: 14px; fill: currentColor; }
+.pdfbtn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: .875rem; color: var(--ink); background: transparent; border: 1px solid var(--rail); border-radius: 999px; padding: 5px 13px 5px 11px; cursor: pointer; white-space: nowrap; }
+.pdfbtn:hover:not(:disabled) { border-color: var(--cyan); }
+.pdfbtn:disabled { opacity: .45; cursor: default; }
+.pdfbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 560px) { .pdfbtn { font-size: 0; gap: 0; padding: 7px; } .pdfbtn svg { width: 16px; height: 16px; } .topright { flex-wrap: nowrap; gap: 12px; } .live { font-size: .8rem; } }
+.rephead { display: none; }
 .topright { flex: none; margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
 .basis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; color: var(--haze); font-size: .875rem; }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(127,227,240,.6); }
@@ -302,6 +308,76 @@ footer p { margin: 0 0 6px; }
   .live.on i, .slab.main.shine .card::after { animation: none; }
   .slab { transition: none; }
 }
+/* ---------- PDF report ----------
+   Built by the browser's print engine so charts stay vector and text stays selectable. The
+   "printing" class switches to a light, ink-friendly palette and is applied before the charts are
+   redrawn, so chart colours read from these variables pick it up too. */
+@page { size: A4 landscape; margin: 11mm 12mm; }
+html.printing {
+  --ink: #161a3d; --haze: #5a618f; --rail: #d9dcef; --vault: #f5f6fc; --volume: #8990c4;
+  --cyan: #1597aa; --violet: #7f5ff0; --gold: #c8901f; --label-red: #d92f37;
+  background: #fff;
+}
+/* Desktop layout at the PDF's printable width, whatever the screen size, so charts are drawn at
+   the size they will be printed. Laid out at 1212px and printed at 85% zoom, which fills the 273mm
+   landscape page and leaves room for each chart panel to sit whole on one page. */
+html.printing .page { width: 1212px; max-width: none; margin: 0; padding: 0; }
+html.printing .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px; }
+html.printing .pitch { order: 0; }
+html.printing .rail { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+html.printing .stat { border-top: 0; border-left: 1px solid var(--rail); padding-left: 20px; }
+html.printing .stat:first-child { border-left: 0; padding-left: 0; }
+html.printing .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+html.printing .tagsrow, html.printing .mcards, html.printing .mini { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+html.printing .furnace { grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); }
+html.printing .arpu { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); }
+html.printing .atiles { grid-template-columns: 1fr; }
+html.printing .kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+html.printing .kpi.hot { grid-column: auto; }
+html.printing .l4lgrid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+html.printing .prod { grid-template-columns: 9.5rem minmax(0, 1fr) 5.5rem 5.5rem; }
+html.printing .prod .num.t { display: block; }
+html.printing .slab.main { width: 250px; }
+html.printing .slab.ref { width: 160px; }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html, body { background: #fff !important; }
+  .page { zoom: .85; }
+  .top, .topsentinel, .basis, .tip, #gnav { display: none !important; }
+  a { color: inherit; text-decoration: none; }
+
+  .rephead { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px; background: #131735; color: #eef0ff; border-radius: 14px; padding: 16px 24px; margin-bottom: 18px; }
+  .rephead img { height: 64px; width: auto; display: block; }
+  .rephead .t { font-family: var(--display); font-weight: 700; font-size: 1.35rem; line-height: 1.1; }
+  .rephead .m { color: #9ea5d6; font-size: .8rem; margin-top: 4px; }
+  .rephead .ru { color: #7fe3f0; font-size: .85rem; font-weight: 600; }
+
+  .group { margin-top: 0; break-before: page; }
+  #g-overview { break-before: auto; }
+  .ghead { border-top: 0; padding-top: 0; }
+  .slab { transform: none !important; box-shadow: none; border-color: var(--rail); background: var(--vault); }
+  .slab.ref { opacity: 1; }
+  .slab.main .card::after { display: none; }
+  .slab.ref .card .big { color: #eef0ff; } .slab.ref .card .cap { color: #b8bee6; }
+  .card .big { font-size: 4.2rem; } .slab.ref .card .big { font-size: 2.8rem; }
+  .pitch h1 { font-size: 4.2rem; }
+  .pitch p { font-size: 1rem; }
+  .panel { background: var(--vault); }
+  .ledger { max-height: none; overflow: visible; }
+  .ledger tbody tr:nth-child(n+21) { display: none; }
+  .ledger:has(tbody tr:nth-child(21))::after { content: "Showing the 20 most recent buybacks. The full ledger is at gbdash.app."; display: block; color: var(--haze); font-size: .8rem; padding-top: 10px; }
+  .ledger th { background: #fff; position: static; }
+  .tablewrap { overflow: visible; }
+  .chip[aria-pressed="true"] { color: #fff; }
+  .live.on i { animation: none; }
+  .panel, .kpi, .mcard, .ptag, .atile, .stat, .slabs, .rail, .msum, .mini, .l4l, tr, .vrow, .prod { break-inside: avoid; }
+  section.panel[aria-labelledby="h-arpu"], section.panel[aria-labelledby="h-ledger"] { break-inside: auto; }
+  .arpu, .l4l h3, .l4lgrid > * { break-inside: avoid; }
+  h2, h3, .band, .ghead, .panel > .sub { break-after: avoid; }
+  .panel > .arpu, #ledgerviz { break-before: avoid; }
+  section.panel[aria-labelledby="h-ledger"], section.panel[aria-labelledby="h-arpu"] { break-before: page; }
+  footer { margin-top: 24px; break-inside: avoid; }
+}
 </style>
 </head>
 <body>
@@ -317,10 +393,16 @@ footer p { margin: 0 0 6px; }
       <a href="#g-burns" data-g="burns"><span>05</span> Buybacks and burns</a>
     </nav>
     <div class="topright">
+      <button class="pdfbtn" id="pdfbtn" type="button" disabled title="Save a PDF report of the dashboard with the current figures"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>PDF report</button>
       <a class="xlink" id="xlink" hidden target="_blank" rel="noopener"></a>
       <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
     </div>
   </header>
+  <div class="rephead" aria-hidden="true">
+    <img src="/assets/grail-dash-logo.png" alt="" width="534" height="280">
+    <div class="rt"><div class="t">Grail Break ($BREAK) vs Collector Crypt ($CARDS)</div><div class="m" id="repmeta"></div></div>
+    <div class="ru">gbdash.app</div>
+  </div>
 
   <section class="group" id="g-overview" aria-labelledby="gh-overview">
     <header class="ghead"><span class="gnum">01</span><div><h2 id="gh-overview">Overview</h2><p>Headline valuation against $CARDS, and Grail Break’s platform totals since launch.</p></div></header>
@@ -470,7 +552,7 @@ footer p { margin: 0 0 6px; }
 
   <footer>
     <p id="xfoot" hidden></p>
-    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch at the top chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch in the Valuation section chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -1272,6 +1354,7 @@ async function load() {
     let j; try { j = JSON.parse(text); } catch { throw new Error(r.status === 404 ? 'the data function at /api/data was not found. Check that api/data.js is deployed.' : `the data function returned an unexpected response (HTTP ${r.status}).`); }
     if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
     DATA = j; render();
+    document.getElementById('pdfbtn').disabled = false;
     live.className = 'live on';
     stamp.textContent = `Live, updated ${new Date(j.updated).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` + (j.errors && j.errors.length ? `. Some sources failed: ${j.errors.join('; ')}` : '');
   } catch (e) {
@@ -1292,6 +1375,29 @@ if (X_HANDLE) {
   const fl = document.createElement('a'); fl.href = url; fl.target = '_blank'; fl.rel = 'noopener'; fl.textContent = '@' + X_HANDLE;
   f.append('Daily metrics posted on X: ', fl, '.');
 }
+/* PDF report: switch to the report palette and print-width layout, redraw the charts for it, and
+   open the browser's print dialog (Save as PDF). Ctrl/Cmd+P goes through the same steps. */
+let PRINTING = false, SAVED_TITLE = document.title;
+function preparePrint() {
+  if (PRINTING) return; PRINTING = true;
+  const now = new Date(), stampOf = d => d.toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  SAVED_TITLE = document.title;
+  document.title = `Grail Dash report ${d3.timeFormat('%Y-%m-%d')(now)}`;
+  document.getElementById('repmeta').textContent = [`Report generated ${stampOf(now)}`,
+    DATA && DATA.updated ? `data as of ${stampOf(new Date(DATA.updated))}` : null,
+    `$CARDS valued on its ${CAP_WORD()}`].filter(Boolean).join(' · ');
+  document.documentElement.classList.add('printing');
+  if (DATA) render();
+}
+function finishPrint() {
+  if (!PRINTING) return; PRINTING = false;
+  document.title = SAVED_TITLE;
+  document.documentElement.classList.remove('printing');
+  if (DATA) render();
+}
+window.addEventListener('beforeprint', preparePrint);
+window.addEventListener('afterprint', finishPrint);
+document.getElementById('pdfbtn').addEventListener('click', () => { preparePrint(); requestAnimationFrame(() => window.print()); });
 load();
 setInterval(load, 5 * 60 * 1000);
 // Highlight the group in view in the sticky navigation.
@@ -1307,7 +1413,7 @@ setInterval(load, 5 * 60 * 1000);
   }, { rootMargin: '-120px 0px -55% 0px', threshold: [0, 0.01, 0.5] });
   document.querySelectorAll('.group').forEach(g => io.observe(g));
 })();
-let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (DATA) render(); }, 150); });
 </script>
 <script>
 // Header: compact once it sticks, and publish its stuck height so anchor jumps clear it.
