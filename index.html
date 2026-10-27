@@ -51,18 +51,33 @@ a { color: var(--cyan); }
 .page { width: min(100%, 96rem); margin: 0 auto; padding: 28px clamp(16px, 4vw, 56px) 56px; }
 
 /* header */
-.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-bottom: clamp(24px, 4vw, 48px); }
-.brand { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); }
-.brand img { height: clamp(48px, 6vw, 76px); width: auto; display: block; }
-.brand span { color: var(--haze); font-size: .85rem; line-height: 1.3; max-width: 15rem; padding-left: 14px; border-left: 1px solid var(--rail); }
-@media (max-width: 560px) { .brand span { display: none; } }
+/* Header: logo, section navigation and live status on one sticky row. The logo is large at the
+   top of the page and eases down to a compact size once the header sticks. */
+.topsentinel { height: 1px; margin-bottom: -1px; }
+.top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px 28px;
+  margin: 0 calc(-1 * clamp(16px, 4vw, 56px)) clamp(24px, 4vw, 48px); padding: 14px clamp(16px, 4vw, 56px);
+  background: rgba(19,23,53,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rail); transition: padding .2s ease; }
+.brand { flex: none; display: flex; align-items: center; gap: 16px; text-decoration: none; color: var(--ink); }
+.brand img { height: clamp(64px, 8vw, 112px); width: auto; display: block; transition: height .2s ease; }
+.brand span { color: var(--haze); font-size: .85rem; line-height: 1.3; max-width: 13rem; padding-left: 16px; border-left: 1px solid var(--rail); }
+.top.stuck { padding-top: 8px; padding-bottom: 8px; }
+.top.stuck .brand img { height: clamp(40px, 4vw, 52px); }
+.top.stuck .brand span { display: none; }
+@media (max-width: 1360px) { .brand span { display: none; } }
+@media (max-width: 960px) {
+  .top { flex-wrap: wrap; justify-content: space-between; padding-bottom: 0; }
+  .top.stuck { padding-bottom: 0; }
+  .top .gnav { order: 3; flex: 1 0 100%; margin: 0 calc(-1 * clamp(16px, 4vw, 56px)); padding: 8px clamp(16px, 4vw, 56px); border-top: 1px solid var(--rail); }
+}
+.top.measuring, .top.measuring .brand img { transition: none; }
+@media (prefers-reduced-motion: reduce) { .top, .brand img { transition: none; } }
 .live { display: flex; align-items: center; gap: 8px; color: var(--haze); font-size: .875rem; }
 .xlink { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); text-decoration: none; font-size: .875rem; border: 1px solid var(--rail); border-radius: 999px; padding: 4px 12px; }
 .xlink:hover { border-color: var(--cyan); }
 .xlink[hidden] { display: none; }
 .xlink svg { width: 14px; height: 14px; fill: currentColor; }
-.topright { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; }
-.basis { display: flex; align-items: center; gap: 10px; color: var(--haze); font-size: .875rem; }
+.topright { flex: none; margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+.basis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; color: var(--haze); font-size: .875rem; }
 .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(127,227,240,.6); }
 .live.on i { animation: pulse 2.4s ease-out infinite; }
 .live.bad i { background: var(--label-red); }
@@ -230,21 +245,21 @@ tr.cards td { color: var(--haze); }
 @media (max-width: 560px) { .atile .n { font-size: 1.7rem; } }
 
 /* analysis groups and navigation */
-.gnav { position: sticky; top: 0; z-index: 30; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * clamp(16px, 4vw, 56px)); padding: 10px clamp(16px, 4vw, 56px); background: rgba(19,23,53,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rail); }
+.gnav { flex: 1 1 auto; min-width: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
 .gnav::-webkit-scrollbar { display: none; }
 .gnav a { flex: none; color: var(--haze); text-decoration: none; font-size: .85rem; padding: 6px 12px; border-radius: 999px; border: 1px solid transparent; white-space: nowrap; }
 .gnav a span { color: var(--gold); font-weight: 600; margin-right: 2px; }
 .gnav a:hover { color: var(--ink); border-color: var(--rail); }
 .gnav a.on { color: var(--night); background: var(--ink); font-weight: 600; }
 .gnav a.on span { color: var(--night); }
-.group { margin-top: clamp(40px, 6vw, 72px); scroll-margin-top: 64px; }
+.group { margin-top: clamp(40px, 6vw, 72px); scroll-margin-top: calc(var(--hh, 72px) + 8px); }
 .group > * + * { margin-top: 20px; }
 .group > .pair { margin-top: 20px; }
 .ghead { display: flex; gap: 16px; align-items: flex-start; padding-top: 18px; border-top: 2px solid var(--rail); margin-bottom: 4px; }
 .gnum { font-family: var(--display); font-weight: 900; font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: .85; color: var(--gold); }
 .ghead h2 { font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 3.6vw, 2.8rem); line-height: .95; margin: 0; }
 .ghead p { color: var(--haze); margin: 6px 0 0; max-width: 70ch; font-size: .95rem; }
-.group h2[id], .group h3[id] { scroll-margin-top: 72px; }
+.group h2[id], .group h3[id] { scroll-margin-top: calc(var(--hh, 72px) + 16px); }
 #g-overview .hero { margin-top: 12px; }
 #g-overview > section[aria-labelledby="h-platform"] { margin-top: clamp(32px, 5vw, 56px); }
 
@@ -291,22 +306,21 @@ footer p { margin: 0 0 6px; }
 </head>
 <body>
 <div class="page">
-  <header class="top">
+  <div class="topsentinel" id="topsentinel" aria-hidden="true"></div>
+  <header class="top" id="top">
     <a class="brand" href="/" aria-label="Grail Dash home"><img src="/assets/grail-dash-logo.png" alt="Grail Dash" width="534" height="280"><span>Grail Break ($BREAK) vs Collector Crypt ($CARDS)</span></a>
+    <nav class="gnav" id="gnav" aria-label="Sections">
+      <a href="#g-overview" data-g="overview"><span>01</span> Overview</a>
+      <a href="#g-valuation" data-g="valuation"><span>02</span> Valuation</a>
+      <a href="#g-activity" data-g="activity"><span>03</span> Platform activity</a>
+      <a href="#g-users" data-g="users"><span>04</span> Users</a>
+      <a href="#g-burns" data-g="burns"><span>05</span> Buybacks and burns</a>
+    </nav>
     <div class="topright">
-      <div class="basis"><span>$CARDS valuation</span><div class="chips" id="basischips" role="group" aria-label="$CARDS valuation basis"></div></div>
       <a class="xlink" id="xlink" hidden target="_blank" rel="noopener"></a>
       <div class="live" id="live"><i></i><span id="stamp">Loading live data</span></div>
     </div>
   </header>
-
-  <nav class="gnav" id="gnav" aria-label="Sections">
-    <a href="#g-overview" data-g="overview"><span>01</span> Overview</a>
-    <a href="#g-valuation" data-g="valuation"><span>02</span> Valuation</a>
-    <a href="#g-activity" data-g="activity"><span>03</span> Platform activity</a>
-    <a href="#g-users" data-g="users"><span>04</span> Users</a>
-    <a href="#g-burns" data-g="burns"><span>05</span> Buybacks and burns</a>
-  </nav>
 
   <section class="group" id="g-overview" aria-labelledby="gh-overview">
     <header class="ghead"><span class="gnum">01</span><div><h2 id="gh-overview">Overview</h2><p>Headline valuation against $CARDS, and Grail Break’s platform totals since launch.</p></div></header>
@@ -339,6 +353,7 @@ footer p { margin: 0 0 6px; }
 
   <section class="group" id="g-valuation" aria-labelledby="gh-valuation">
     <header class="ghead"><span class="gnum">02</span><div><h2 id="gh-valuation">Valuation</h2><p>What $BREAK would be worth at the multiples $CARDS trades at, and how the two compare.</p></div></header>
+<div class="basis"><span>Value $CARDS on</span><div class="chips" id="basischips" role="group" aria-label="$CARDS valuation basis"></div></div>
 <section class="msum" aria-labelledby="h-msum">
   <div class="band" style="margin:0 0 14px"><h2 id="h-msum" style="font-size:clamp(1.5rem,2.4vw,2rem);font-weight:700">Key multiples vs $CARDS</h2><p id="msum-sub"></p></div>
   <div class="mcards" id="mcards"></div>
@@ -1289,10 +1304,24 @@ setInterval(load, 5 * 60 * 1000);
     es.forEach(e => seen.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0));
     const top = [...document.querySelectorAll('.group')].find(g => (seen.get(g.id) || 0) > 0);
     if (top) set(top.id.slice(2));
-  }, { rootMargin: '-80px 0px -55% 0px', threshold: [0, 0.01, 0.5] });
+  }, { rootMargin: '-120px 0px -55% 0px', threshold: [0, 0.01, 0.5] });
   document.querySelectorAll('.group').forEach(g => io.observe(g));
 })();
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
+</script>
+<script>
+// Header: compact once it sticks, and publish its stuck height so anchor jumps clear it.
+(() => {
+  const top = document.getElementById('top'), sentinel = document.getElementById('topsentinel');
+  const measure = () => {
+    const was = top.classList.contains('stuck');
+    top.classList.add('measuring', 'stuck');
+    document.documentElement.style.setProperty('--hh', top.offsetHeight + 'px');
+    top.classList.toggle('stuck', was); void top.offsetHeight; top.classList.remove('measuring');
+  };
+  measure(); window.addEventListener('resize', measure);
+  if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => top.classList.toggle('stuck', !e.isIntersecting)).observe(sentinel);
+})();
 </script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
