@@ -13,6 +13,11 @@
     "api/post-daily.mjs": {
       "maxDuration": 60,
       "includeFiles": "assets/**"
+    },
+    "api/report.mjs": {
+      "maxDuration": 60,
+      "memory": 2048,
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**"
     }
   }
 }

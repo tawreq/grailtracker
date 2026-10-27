@@ -79,6 +79,9 @@ a { color: var(--cyan); }
 .pdfbtn { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: .875rem; color: var(--ink); background: transparent; border: 1px solid var(--rail); border-radius: 999px; padding: 5px 13px 5px 11px; cursor: pointer; white-space: nowrap; }
 .pdfbtn:hover:not(:disabled) { border-color: var(--cyan); }
 .pdfbtn:disabled { opacity: .45; cursor: default; }
+.pdfbtn.busy { cursor: progress; border-color: var(--cyan); }
+.pdfbtn.busy svg { animation: pdfbob 1s ease-in-out infinite; }
+@keyframes pdfbob { 50% { transform: translateY(2px); } }
 .pdfbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 560px) { .pdfbtn { font-size: 0; gap: 0; padding: 7px; } .pdfbtn svg { width: 16px; height: 16px; } .topright { flex-wrap: nowrap; gap: 12px; } .live { font-size: .8rem; } }
 .rephead { display: none; }
@@ -312,7 +315,8 @@ footer p { margin: 0 0 6px; }
    Built by the browser's print engine so charts stay vector and text stays selectable. The
    "printing" class switches to a light, ink-friendly palette and is applied before the charts are
    redrawn, so chart colours read from these variables pick it up too. */
-@page { size: A4 landscape; margin: 11mm 12mm; }
+/* A4 landscape proportions at the report's 1660px layout width (the server PDF prints this at A4). */
+@page { size: 1730px 1223px; margin: 34px 35px; }
 html.printing {
   --ink: #161a3d; --haze: #5a618f; --rail: #d9dcef; --vault: #f5f6fc; --volume: #8990c4;
   --cyan: #1597aa; --violet: #7f5ff0; --gold: #c8901f; --label-red: #d92f37;
@@ -321,7 +325,7 @@ html.printing {
 /* Desktop layout at the PDF's printable width, whatever the screen size, so charts are drawn at
    the size they will be printed. Laid out at 1212px and printed at 85% zoom, which fills the 273mm
    landscape page and leaves room for each chart panel to sit whole on one page. */
-html.printing .page { width: 1212px; max-width: none; margin: 0; padding: 0; }
+html.printing .page { width: 1660px; max-width: none; margin: 0; padding: 0; }
 html.printing .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px; }
 html.printing .pitch { order: 0; }
 html.printing .rail { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -329,7 +333,6 @@ html.printing .stat { border-top: 0; border-left: 1px solid var(--rail); padding
 html.printing .stat:first-child { border-left: 0; padding-left: 0; }
 html.printing .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 html.printing .tagsrow, html.printing .mcards, html.printing .mini { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-html.printing .furnace { grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); }
 html.printing .arpu { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); }
 html.printing .atiles { grid-template-columns: 1fr; }
 html.printing .kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
@@ -337,12 +340,33 @@ html.printing .kpi.hot { grid-column: auto; }
 html.printing .l4lgrid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
 html.printing .prod { grid-template-columns: 9.5rem minmax(0, 1fr) 5.5rem 5.5rem; }
 html.printing .prod .num.t { display: block; }
-html.printing .slab.main { width: 250px; }
-html.printing .slab.ref { width: 160px; }
+/* Report only: each section becomes a 6-column grid so smaller panels share a row. */
+html.printing .group { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; align-items: start; }
+html.printing .group > * { grid-column: 1 / -1; margin-top: 0 !important; }
+html.printing .group > .pair { display: contents; }
+html.printing .group > .pair > .panel { margin: 0; }
+html.printing section[aria-labelledby="h-trail"], html.printing section[aria-labelledby="h-vs"], html.printing section[aria-labelledby="h-scen"],
+html.printing section[aria-labelledby="h-daily"], html.printing section[aria-labelledby="h-cumul"], html.printing section[aria-labelledby="h-mix"],
+html.printing section[aria-labelledby="h-people"] { grid-column: span 2; }
+html.printing section[aria-labelledby="h-arpu"] { grid-column: span 4; display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.5fr); column-gap: 24px; align-items: start; }
+html.printing section[aria-labelledby="h-arpu"] > h2, html.printing section[aria-labelledby="h-arpu"] > .sub { grid-column: 1 / -1; }
+html.printing section[aria-labelledby="h-arpu"] > .l4l { margin-top: 0; padding-top: 0; border-top: 0; }
+html.printing .arpu { grid-template-columns: 1fr; }
+html.printing .l4lgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+html.printing section[aria-labelledby="h-msum"] { grid-column: span 2; }
+html.printing section[aria-labelledby="h-implied"] { grid-column: span 4; }
+html.printing .group .mcards { grid-template-columns: 1fr; }
+html.printing section[aria-labelledby="h-furnace"], html.printing section[aria-labelledby="h-burnline"], html.printing section[aria-labelledby="h-ledger"] { grid-column: span 2; }
+html.printing .furnace { grid-template-columns: 1fr; }
+html.printing .group .atiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+html.printing .slab.main { width: 230px; }
+html.printing .slab.ref { width: 150px; }
+html.printing .hero { grid-template-columns: auto minmax(0, 1fr); }
+html.printing .card { aspect-ratio: 5 / 6; }
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { background: #fff !important; }
-  .page { zoom: .85; }
   .top, .topsentinel, .basis, .tip, #gnav { display: none !important; }
   a { color: inherit; text-decoration: none; }
 
@@ -354,18 +378,23 @@ html.printing .slab.ref { width: 160px; }
 
   .group { margin-top: 0; break-before: page; }
   #g-overview { break-before: auto; }
+  .group > * + *, .group > .pair { margin-top: 14px; }
+  #g-overview { margin-top: 0; }
   .ghead { border-top: 0; padding-top: 0; }
   .slab { transform: none !important; box-shadow: none; border-color: var(--rail); background: var(--vault); }
   .slab.ref { opacity: 1; }
   .slab.main .card::after { display: none; }
   .slab.ref .card .big { color: #eef0ff; } .slab.ref .card .cap { color: #b8bee6; }
-  .card .big { font-size: 4.2rem; } .slab.ref .card .big { font-size: 2.8rem; }
-  .pitch h1 { font-size: 4.2rem; }
+  .card .big { font-size: 3.4rem; } .slab.ref .card .big { font-size: 2.2rem; }
+  .pitch h1 { font-size: 3.6rem; }
+  #g-overview > section[aria-labelledby="h-platform"] { margin-top: 0 !important; }
+  .rail { margin: 14px 0 0; }
   .pitch p { font-size: 1rem; }
   .panel { background: var(--vault); }
   .ledger { max-height: none; overflow: visible; }
-  .ledger tbody tr:nth-child(n+21) { display: none; }
-  .ledger:has(tbody tr:nth-child(21))::after { content: "Showing the 20 most recent buybacks. The full ledger is at gbdash.app."; display: block; color: var(--haze); font-size: .8rem; padding-top: 10px; }
+  .ledger table { display: none; }
+  .ledger { border-top: 0; }
+  .ledger::after { content: "Every buyback, with its Solana transaction, is listed in the ledger at gbdash.app."; display: block; color: var(--haze); font-size: .85rem; padding-top: 4px; }
   .ledger th { background: #fff; position: static; }
   .tablewrap { overflow: visible; }
   .chip[aria-pressed="true"] { color: #fff; }
@@ -375,8 +404,7 @@ html.printing .slab.ref { width: 160px; }
   .arpu, .l4l h3, .l4lgrid > * { break-inside: avoid; }
   h2, h3, .band, .ghead, .panel > .sub { break-after: avoid; }
   .panel > .arpu, #ledgerviz { break-before: avoid; }
-  section.panel[aria-labelledby="h-ledger"], section.panel[aria-labelledby="h-arpu"] { break-before: page; }
-  footer { margin-top: 24px; break-inside: avoid; }
+  footer { margin-top: 18px; max-width: none; font-size: .75rem; break-inside: avoid; }
 }
 </style>
 </head>
@@ -1397,7 +1425,27 @@ function finishPrint() {
 }
 window.addEventListener('beforeprint', preparePrint);
 window.addEventListener('afterprint', finishPrint);
-document.getElementById('pdfbtn').addEventListener('click', () => { preparePrint(); requestAnimationFrame(() => window.print()); });
+// The button downloads a landscape A4 PDF rendered on the server (/api/report), so every device gets
+// the same file. If that fails, it falls back to the browser's print dialog.
+document.getElementById('pdfbtn').addEventListener('click', async () => {
+  const btn = document.getElementById('pdfbtn'), label = btn.lastChild, text = label.textContent;
+  if (btn.classList.contains('busy')) return;
+  btn.classList.add('busy'); btn.setAttribute('aria-busy', 'true'); label.textContent = 'Preparing PDF…';
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    const r = await fetch(`/api/report?basis=${CARDS_BASIS}&tz=${encodeURIComponent(tz)}`);
+    if (!r.ok || !(r.headers.get('content-type') || '').includes('pdf')) throw new Error(`HTTP ${r.status}`);
+    const blob = await r.blob();
+    const name = (/filename="([^"]+)"/.exec(r.headers.get('content-disposition') || '') || [])[1] || 'Grail Dash report.pdf';
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) {
+    preparePrint(); requestAnimationFrame(() => window.print());
+  } finally {
+    btn.classList.remove('busy'); btn.removeAttribute('aria-busy'); label.textContent = text;
+  }
+});
 load();
 setInterval(load, 5 * 60 * 1000);
 // Highlight the group in view in the sticky navigation.
