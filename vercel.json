@@ -3,6 +3,10 @@
     {
       "path": "/api/post-daily",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/snapshot",
+      "schedule": "50 3 * * *"
     }
   ],
   "functions": {

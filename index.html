@@ -238,6 +238,8 @@ tr.cards td { color: var(--haze); }
 
 .arpu { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
 .atiles { display: grid; gap: 12px; }
+.growth { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
+.gnote { color: var(--haze); font-size: .8rem; margin: 10px 0 0; }
 .atile { border-radius: 16px; padding: 14px 16px; background: var(--vault); border: 1px solid var(--rail); }
 .atile.hot { background: linear-gradient(var(--vault), var(--vault)) padding-box, var(--holo) border-box; border: 1.5px solid transparent; }
 .atile .k { color: var(--haze); font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
@@ -294,7 +296,7 @@ footer p { margin: 0 0 6px; }
   .rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat { border-left: 0; padding-left: 0; border-top: 1px solid var(--rail); }
   .stat:nth-child(-n+2) { border-top: 0; }
-  .pair, .tagsrow, .furnace, .arpu { grid-template-columns: 1fr; }
+  .pair, .tagsrow, .furnace, .arpu, .growth { grid-template-columns: 1fr; }
   .atiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kpi.hot { grid-column: 1 / -1; }
@@ -333,7 +335,7 @@ html.printing .stat { border-top: 0; border-left: 1px solid var(--rail); padding
 html.printing .stat:first-child { border-left: 0; padding-left: 0; }
 html.printing .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 html.printing .tagsrow, html.printing .mcards, html.printing .mini { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-html.printing .arpu { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); }
+html.printing .arpu, html.printing .growth { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); }
 html.printing .atiles { grid-template-columns: 1fr; }
 html.printing .kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 html.printing .kpi.hot { grid-column: auto; }
@@ -353,6 +355,10 @@ html.printing section[aria-labelledby="h-arpu"] > h2, html.printing section[aria
 html.printing section[aria-labelledby="h-arpu"] > .l4l { margin-top: 0; padding-top: 0; border-top: 0; }
 html.printing .arpu { grid-template-columns: 1fr; }
 html.printing .l4lgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+/* New users runs full width after the people + ARPU row, so that row stays paired. */
+html.printing section[aria-labelledby="h-growth"] { order: 1; }
+html.printing .group .growth .atiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+html.printing .growth { grid-template-columns: 1fr; }
 html.printing section[aria-labelledby="h-msum"] { grid-column: span 2; }
 html.printing section[aria-labelledby="h-implied"] { grid-column: span 4; }
 html.printing .group .mcards { grid-template-columns: 1fr; }
@@ -403,7 +409,7 @@ html.printing .card { aspect-ratio: 5 / 6; }
   section.panel[aria-labelledby="h-arpu"], section.panel[aria-labelledby="h-ledger"] { break-inside: auto; }
   .arpu, .l4l h3, .l4lgrid > * { break-inside: avoid; }
   h2, h3, .band, .ghead, .panel > .sub { break-after: avoid; }
-  .panel > .arpu, #ledgerviz { break-before: avoid; }
+  .panel > .arpu, .panel > .growth, #ledgerviz { break-before: avoid; }
   footer { margin-top: 18px; max-width: none; font-size: .75rem; break-inside: avoid; }
 }
 </style>
@@ -521,13 +527,21 @@ html.printing .card { aspect-ratio: 5 / 6; }
   </section>
 
   <section class="group" id="g-users" aria-labelledby="gh-users">
-    <header class="ghead"><span class="gnum">04</span><div><h2 id="gh-users">Users</h2><p>Who buys, and how much revenue each user and buyer generates, including a like-for-like comparison with $CARDS.</p></div></header>
+    <header class="ghead"><span class="gnum">04</span><div><h2 id="gh-users">Users</h2><p>Who buys, how fast new users arrive, and how much revenue each user and buyer generates, including a like-for-like comparison with $CARDS.</p></div></header>
 <section class="panel" aria-labelledby="h-people">
       <h2 id="h-people">Registered users and buyers</h2>
       <p class="sub" id="people-sub">Registered users against users with at least one purchase.</p>
       <div id="dots"></div>
       <div class="mini" id="peoplestats"></div>
     </section>
+<section class="panel" aria-labelledby="h-growth">
+    <h2 id="h-growth">New users</h2>
+    <p class="sub" id="growth-sub">New registered users and new buyers each day.</p>
+    <div class="growth">
+      <div class="atiles" id="gtiles"></div>
+      <div class="chart" id="growthchart"></div>
+    </div>
+  </section>
 <section class="panel" aria-labelledby="h-arpu">
     <h2 id="h-arpu">Estimated revenue per user</h2>
     <p class="sub" id="arpu-sub">Net revenue divided by registered users (ARPU) and by users who have bought (ARPPU).</p>
@@ -580,7 +594,7 @@ html.printing .card { aspect-ratio: 5 / 6; }
 
   <footer>
     <p id="xfoot" hidden></p>
-    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch in the Valuation section chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Data refreshes every 5 minutes.</p>
+    <p>Volume and net revenue come from Grail Break's platform numbers and include $BREAK trading fees claimed by Grail Break, not only product fees. Packs opened, card value pulled, users, breaks and the buyback ledger come from the same source; buybacks are valued in USD at the time of each burn, and the share of supply burned is measured against $BREAK's original 1B supply. "Returned as cards", volume per buyer and the ARPU figures are this tracker's own arithmetic on those numbers. Prices, market caps and $CARDS FDV come from DexScreener; the $CARDS valuation switch in the Valuation section chooses whether $CARDS comparisons use its circulating market cap or its fully diluted value; Collector Crypt's 30-day pack sales and revenue come from DefiLlama. Grail Break publishes only running totals of users and buyers, so new users per day are this tracker's own count: it records those totals whenever the data refreshes and at the end of each US Eastern day, and subtracts one day's last reading from the next; the since-launch average divides today's total by the days since launch. Data refreshes every 5 minutes.</p>
     <p>For information only. Not financial advice.</p>
   </footer>
 </div>
@@ -722,6 +736,7 @@ function render() {
   if (D.totals && D.totals.packs_ripped !== undefined) {
     renderKpis(D, colorOf);
     renderPeople(D);
+    if (D.growth) { renderGrowth(D.growth); drawGrowth(D.growth); }
     renderBurn(D);
   }
 
@@ -1181,6 +1196,79 @@ function renderLikeForLike(D) {
     tr('Purchases per buyer per day', F.usd(A.paid_volume / A.buyers / A.live_days), F.usd(C.pack_sales / C.buyers / C.days)),
     tr('Net revenue per buyer per day', F.usd(T.revenue / A.buyers / A.live_days), F.usd(C.gross_profit / C.buyers / C.days))
   );
+}
+
+/* ---------- New users ---------- */
+// Grail Break publishes only running totals, so daily counts come from readings this tracker records (api/_growth.js).
+const etClock = t => new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }).format(new Date(t)) + ' ET';
+const etDate = t => new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }).format(new Date(t));
+const perDay = v => v == null ? '–' : (v >= 100 || Number.isInteger(v) ? d3.format(',.0f') : d3.format(',.1f'))(v);
+const plus = v => v == null ? '–' : (v > 0 ? '+' : '') + perDay(v);
+function renderGrowth(G) {
+  const since = G.tracking_since ? `${etDate(G.tracking_since)}, ${etClock(G.tracking_since)}` : null;
+  document.getElementById('growth-sub').textContent = G.error
+    ? `New users per day need readings over time, and the history isn't available right now (${G.error}). Showing the since-launch average.`
+    : `Increase in registered users and in buyers (users with a first purchase) each US Eastern day. Grail Break publishes only running totals, so this tracker records them as it refreshes, starting ${since}. The chart shows the last 7 days.`;
+  const t = (k, n, parts, hot) => { const d = el('div', 'atile' + (hot ? ' hot' : '')); d.append(el('div', 'k', k), el('div', 'n', n), rich(parts)); return d; };
+  const T = G.today, L = G.last_full, has7 = G.avg7_users !== null;
+  const todayParts = !T || T.new_users === null ? ['No reading yet today']
+    : [[plus(T.new_buyers)], ' new buyers', T.basis === 'start' ? `; counted from ${etClock(T.from)}` : T.as_of ? ` · as of ${etClock(T.as_of)}` : ''];
+  const tiles = [
+    t('New users today', T && T.new_users !== null ? plus(T.new_users) : '–', todayParts),
+    t('Last full day', L ? plus(L.new_users) : '–', L ? [[plus(L.new_buyers)], ` new buyers on ${day(L.day)}`, L.basis === 'start' ? ' (from first reading)' : L.basis === 'spread' ? ' (estimated across a gap)' : ''] : ['Available after the first full tracked day']),
+    t('7-day average', has7 ? perDay(G.avg7_users) : '–', has7 ? ['New users per day; ', [perDay(G.avg7_buyers)], ' new buyers', G.avg7_days < 7 ? ` (${G.avg7_days} tracked day${G.avg7_days === 1 ? '' : 's'} so far)` : ''] : ['Builds up as days are tracked'], has7),
+    t('Since launch, per day', perDay(G.launch_avg_users), [[F.int(G.users)], ' users over ', [d3.format('.0f')(G.users / G.launch_avg_users)], ' days; ', [perDay(G.launch_avg_buyers)], ' new buyers per day'], !has7)
+  ];
+  document.getElementById('gtiles').replaceChildren(...tiles);
+}
+
+function drawGrowth(G) {
+  const box = document.getElementById('growthchart'); box.replaceChildren();
+  const rows = inWin(G.rows || []);
+  if (!rows.length || rows.every(r => r.new_users === null)) {
+    box.append(el('p', 'gnote', G.error ? 'Daily counts appear here once the history is available.' : 'Daily counts appear here from the first tracked day.'));
+    return;
+  }
+  const W = Math.max(box.clientWidth, 280), H = 300, l = 36, r = W < 480 ? 70 : 96, t = 34, b = 30;
+  const svg = svgIn(box, W, H); holoDefs(svg, 'holo-g', true);
+  const x = d3.scaleBand(rows.map(d => d.day), [l, W - r]).padding(.22), cx = d => x(d.day) + x.bandwidth() / 2;
+  const top = d3.max([...rows.map(d => d.new_users || 0), G.launch_avg_users, 1]);
+  const y = d3.scaleLinear([0, top * 1.1], [H - b, t]).nice();
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('x1', l).attr('x2', W - r).attr('y1', y).attr('y2', y).attr('stroke', 'rgba(158,165,214,.14)');
+  svg.append('g').selectAll('text').data(y.ticks(4).filter(Number.isInteger)).join('text').attr('x', l - 8).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('fill', 'var(--haze)').text(d3.format(','));
+  // Legend.
+  const k = svg.append('g').attr('transform', `translate(${l},${t - 18})`).attr('font-size', 11);
+  const narrow = W < 480;
+  [['New users', 'rect', 'var(--volume)'], ['New buyers', 'rect', 'url(#holo-g)'], [narrow ? 'Launch avg' : 'Since-launch average', 'line', css('--haze')]].forEach(([txt, kind, c], i) => {
+    const g = k.append('g').attr('transform', `translate(${[0, 84, 172][i]},0)`);
+    if (kind === 'rect') g.append('rect').attr('width', 10).attr('height', 10).attr('rx', 2).attr('y', -9).attr('fill', c);
+    else g.append('line').attr('x1', 0).attr('x2', 14).attr('y1', -4).attr('y2', -4).attr('stroke', c).attr('stroke-width', 2).attr('stroke-dasharray', '4 3');
+    g.append('text').attr('x', kind === 'rect' ? 14 : 18).attr('fill', 'var(--haze)').text(txt);
+  });
+  const vals = rows.filter(d => d.new_users !== null);
+  const est = d => d.partial || d.basis !== 'full';
+  const bw = Math.min(x.bandwidth(), 44), off = (x.bandwidth() - bw) / 2, inner = bw * .5, ioff = off + (bw - inner) / 2;
+  grow(svg.append('g').selectAll('rect').data(vals).join('rect').attr('x', d => x(d.day) + off).attr('width', bw).attr('rx', 6)
+    .attr('fill', 'var(--volume)').attr('opacity', d => est(d) ? .5 : 1).attr('stroke', d => est(d) ? 'var(--haze)' : null).attr('stroke-dasharray', d => est(d) ? '3 3' : null)
+    .attr('y', H - b).attr('height', 0), { y: d => y(Math.max(d.new_users, 0)), height: d => H - b - y(Math.max(d.new_users, 0)) }, 300);
+  grow(svg.append('g').selectAll('rect').data(vals).join('rect').attr('x', d => x(d.day) + ioff).attr('width', inner).attr('rx', 3)
+    .attr('fill', 'url(#holo-g)').attr('opacity', d => est(d) ? .55 : 1).attr('y', H - b).attr('height', 0), { y: d => y(Math.max(d.new_buyers, 0)), height: d => H - b - y(Math.max(d.new_buyers, 0)) }, 500);
+  svg.append('g').selectAll('text').data(vals).join('text').attr('x', cx).attr('y', d => y(Math.max(d.new_users, 0)) - 6).attr('text-anchor', 'middle').attr('fill', 'var(--ink)').attr('font-size', 11).attr('font-weight', 600).text(d => plus(d.new_users));
+  // Since-launch average as a reference line.
+  const ya = y(G.launch_avg_users);
+  svg.append('line').attr('x1', l).attr('x2', W - r).attr('y1', ya).attr('y2', ya).attr('stroke', css('--haze')).attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
+  const at = svg.append('text').attr('x', W - r + 8).attr('y', ya + 4).attr('fill', 'var(--haze)').attr('font-size', 11);
+  at.append('tspan').attr('font-weight', 600).attr('fill', 'var(--ink)').text(perDay(G.launch_avg_users) + '/day');
+  at.append('tspan').attr('x', W - r + 8).attr('dy', 14).text('launch avg');
+  const step = Math.max(1, Math.ceil(rows.length / Math.floor((W - l - r) / 52)));
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => (rows.length - 1 - i) % step === 0)).join('text').attr('x', cx).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => d.partial ? 'Today' : day(d.day));
+  const tip = tipFor(box);
+  const note = d => d.new_users === null ? 'No readings recorded' : d.partial ? `So far${d.as_of ? ', as of ' + etClock(d.as_of) : ''}` : d.basis === 'start' ? `First tracked day, counted from ${etClock(d.from)}` : d.basis === 'spread' ? `Estimated: change across ${d.span} days without readings, shared evenly` : '';
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', t).attr('height', H - b - t).attr('fill', 'transparent')
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), d.new_users === null ? [note(d)] : [`${plus(d.new_users)} users, ${plus(d.new_buyers)} buyers`, d.users ? `${F.int(d.users)} users, ${F.int(d.buyers)} buyers in total` : '', note(d)].filter(Boolean)); })
+    .on('mouseleave', () => tip.hide());
+  svg.attr('role', 'img').attr('aria-label', `Bar chart of new users per day: ${vals.map(d => `${day(d.day)} ${plus(d.new_users)}`).join(', ')}. Since-launch average ${perDay(G.launch_avg_users)} per day.`);
+  if (rows.some(est)) box.append(el('p', 'gnote', 'Faded bars are partial or estimated: today so far, the first tracked day (counted from the first reading), or days without readings.'));
 }
 
 /* ---------- Estimated ARPU ---------- */

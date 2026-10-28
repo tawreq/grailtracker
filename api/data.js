@@ -3,6 +3,7 @@
 
 const BREAK = 'BREAKLm9nsBW8M5ZTk52EUpwSC5cdCepdjUMSPnCxTgd';
 const CARDS = 'CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp';
+const { trackGrowth } = require('./_growth.js');
 
 // Collector Crypt per-buyer reference. No live feed publishes $CARDS user counts, so this uses the
 // latest published quarter. Update when a new quarter is reported.
@@ -160,6 +161,9 @@ async function getData() {
   try {
     const out = computeAll(raw);
     out.errors = errors;
+    // New users per day, from readings this tracker records over time (see _growth.js).
+    const A = out.arpu;
+    out.growth = await trackGrowth({ users: A.users, buyers: A.buyers, live_days: A.live_days, today: easternToday() });
     return out;
   } catch (e) {
     e.errors = errors;
