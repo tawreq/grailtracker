@@ -206,7 +206,8 @@ tr.cards td { color: var(--haze); }
 .duo .row b { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
 .duo .track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: rgba(158,165,214,.12); overflow: hidden; }
 .duo .track div { height: 100%; border-radius: 999px; }
-#cumul, #burnline { min-height: 340px; }
+#cumul { min-height: 340px; }
+#burnline { min-height: 460px; }
 .furnace { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); gap: clamp(20px, 3vw, 40px); align-items: start; }
 #gauge { max-width: 380px; margin: 0 auto; }
 .split { display: grid; gap: 14px; margin-top: 12px; }
@@ -1056,7 +1057,7 @@ function drawCumul(rows) {
 
 function drawBurnline(burns, supply) {
   const box = document.getElementById('burnline'); box.querySelectorAll('svg').forEach(s => s.remove());
-  const W = Math.max(box.clientWidth, 280), H = 340, m = { l: 52, r: 56, t: 20, b: 30 };
+  const W = Math.max(box.clientWidth, 280), H = 460, m = { l: 52, r: 56, t: 20, b: 30 };
   const svg = svgIn(box, W, H);
   const t0 = new Date(burns[0].time), t1 = new Date(Math.max(Date.now(), +new Date(burns[burns.length - 1].time)));
   const x = d3.scaleTime([t0, t1], [m.l, W - m.r]), maxB = burns[burns.length - 1].total_burned;
@@ -1066,7 +1067,8 @@ function drawBurnline(burns, supply) {
   svg.append('g').selectAll('text').data(y.ticks(5)).join('text').attr('x', W - m.r + 8).attr('y', d => y(d) + 4).attr('fill', 'var(--haze)').text(d => d3.format('.1%')(d / supply));
   const xt = x.ticks(W < 480 ? 3 : 6);
   svg.append('g').selectAll('text').data(xt).join('text').attr('x', x).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d3.timeFormat('%b %-d'));
-  const pts = [{ time: burns[0].time, total_burned: burns[0].total_burned - burns[0].burned }, ...burns, { time: t1.toISOString(), total_burned: maxB }];
+  // The line ends at the last burn: no flat segment running on from it to the total label.
+  const pts = [{ time: burns[0].time, total_burned: burns[0].total_burned - burns[0].burned }, ...burns];
   const g = svg.append('defs').append('linearGradient').attr('id', 'fade-b').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 1);
   g.append('stop').attr('offset', '0%').attr('stop-color', css('--gold')).attr('stop-opacity', .35); g.append('stop').attr('offset', '100%').attr('stop-color', css('--gold')).attr('stop-opacity', 0);
   svg.append('path').datum(pts).attr('fill', 'url(#fade-b)').attr('d', d3.area(d => x(new Date(d.time)), H - m.b, d => y(d.total_burned)).curve(d3.curveStepAfter));
