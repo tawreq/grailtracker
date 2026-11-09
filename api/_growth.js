@@ -22,8 +22,10 @@ async function load() {
   const r = await get(PATH, { access: 'private', useCache: false });
   if (!r || r.statusCode !== 200 || !r.stream) return { history: { v: 1, days: {} }, etag: null };
   const history = await new Response(r.stream).json();
-  if (!history || typeof history.days !== 'object') return { history: { v: 1, days: {} }, etag: r.blob.etag };
-  return { history, etag: r.blob.etag };
+  // Reads can return a weak ETag (W/"abc") but writes only match the strong form ("abc").
+  const etag = r.blob.etag.replace(/^W\//, '');
+  if (!history || typeof history.days !== 'object') return { history: { v: 1, days: {} }, etag };
+  return { history, etag };
 }
 
 // Adds a reading to the history. Returns true if the file needs saving (a new day, or the totals changed).
