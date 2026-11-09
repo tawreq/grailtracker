@@ -1213,20 +1213,34 @@ function renderGrowth(G) {
     : `Increase in registered users and in buyers (users with a first purchase) each US Eastern day. Grail Break publishes only running totals, so this tracker records them as it refreshes, starting ${since}. The chart shows the last 7 days.`;
   const t = (k, n, parts, hot) => { const d = el('div', 'atile' + (hot ? ' hot' : '')); d.append(el('div', 'k', k), el('div', 'n', n), rich(parts)); return d; };
   const T = G.today, L = G.last_full, has7 = G.avg7_users !== null;
-  const todayParts = !T || T.new_users === null ? ['No reading yet today']
+  const todayGap = T && T.basis === 'spread';
+  const todayParts = todayGap ? [`Not measurable: part of a ${T.span}-day gap in readings`] : !T || T.new_users === null ? ['No reading yet today']
     : [[plus(T.new_buyers)], ' new buyers', T.basis === 'start' ? `; counted from ${etClock(T.from)}` : T.as_of ? ` · as of ${etClock(T.as_of)}` : ''];
   const tiles = [
-    t('New users today', T && T.new_users !== null ? plus(T.new_users) : '–', todayParts),
+    t('New users today', T && T.new_users !== null && !todayGap ? plus(T.new_users) : '–', todayParts),
     t('Last full day', L ? plus(L.new_users) : '–', L ? [[plus(L.new_buyers)], ` new buyers on ${day(L.day)}`, L.basis === 'start' ? ' (from first reading)' : L.basis === 'spread' ? ' (estimated across a gap)' : ''] : ['Available after the first full tracked day']),
-    t('7-day average', has7 ? perDay(G.avg7_users) : '–', has7 ? ['New users per day; ', [perDay(G.avg7_buyers)], ' new buyers', G.avg7_days < 7 ? ` (${G.avg7_days} tracked day${G.avg7_days === 1 ? '' : 's'} so far)` : ''] : ['Builds up as days are tracked'], has7),
+    t('7-day average', has7 ? perDay(G.avg7_users) : '–', has7 ? ['New users per day; ', [perDay(G.avg7_buyers)], ' new buyers', G.avg7_days < 7 ? ` (${G.avg7_days} tracked day${G.avg7_days === 1 ? '' : 's'} so far)` : G.avg7_exact ? '' : ' (includes estimated days)'] : ['Builds up as days are tracked'], has7),
     t('Since launch, per day', perDay(G.launch_avg_users), [[F.int(G.users)], ' users over ', [d3.format('.0f')(G.users / G.launch_avg_users)], ' days; ', [perDay(G.launch_avg_buyers)], ' new buyers per day'], !has7)
   ];
   document.getElementById('gtiles').replaceChildren(...tiles);
 }
 
+// Days with no readings have only a combined change, so they are drawn as one bar for the whole gap.
+function mergeGaps(rows) {
+  const out = [];
+  rows.forEach(r => {
+    const p = out[out.length - 1];
+    if (r.basis !== 'spread') out.push(r);
+    else if (p && p.gap && p.remaining > 0) { p.remaining--; p.end = r.day; p.new_users += r.new_users; p.new_buyers += r.new_buyers; p.partial = r.partial; if (r.users) { p.users = r.users; p.buyers = r.buyers; } }
+    else out.push({ ...r, gap: true, start: r.day, end: r.day, remaining: r.span - 1 });
+  });
+  return out;
+}
+const barLabel = d => d.gap ? `${day(d.start)}–${day(d.end)}` : d.partial ? 'Today' : day(d.day);
+
 function drawGrowth(G) {
   const box = document.getElementById('growthchart'); box.replaceChildren();
-  const rows = inWin(G.rows || []);
+  const rows = inWin(mergeGaps(G.rows || []));
   if (!rows.length || rows.every(r => r.new_users === null)) {
     box.append(el('p', 'gnote', G.error ? 'Daily counts appear here once the history is available.' : 'Daily counts appear here from the first tracked day.'));
     return;
@@ -1263,14 +1277,14 @@ function drawGrowth(G) {
   at.append('tspan').attr('font-weight', 600).attr('fill', 'var(--ink)').text(perDay(G.launch_avg_users) + '/day');
   at.append('tspan').attr('x', W - r + 8).attr('dy', 14).text('launch avg');
   const step = Math.max(1, Math.ceil(rows.length / Math.floor((W - l - r) / 52)));
-  svg.append('g').selectAll('text').data(rows.filter((d, i) => (rows.length - 1 - i) % step === 0)).join('text').attr('x', cx).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(d => d.partial ? 'Today' : day(d.day));
+  svg.append('g').selectAll('text').data(rows.filter((d, i) => (rows.length - 1 - i) % step === 0)).join('text').attr('x', cx).attr('y', H - 8).attr('text-anchor', 'middle').attr('fill', 'var(--haze)').text(barLabel);
   const tip = tipFor(box);
-  const note = d => d.new_users === null ? 'No readings recorded' : d.partial ? `So far${d.as_of ? ', as of ' + etClock(d.as_of) : ''}` : d.basis === 'start' ? `First tracked day, counted from ${etClock(d.from)}` : d.basis === 'spread' ? `Estimated: change across ${d.span} days without readings, shared evenly` : '';
+  const note = d => d.new_users === null ? 'No readings recorded' : d.gap ? `Combined change across ${d.span} days without readings` : d.partial ? `So far${d.as_of ? ', as of ' + etClock(d.as_of) : ''}` : d.basis === 'start' ? `First tracked day, counted from ${etClock(d.from)}` : d.basis === 'spread' ? `Estimated: change across ${d.span} days without readings, shared evenly` : '';
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', d => x(d.day)).attr('width', x.bandwidth()).attr('y', t).attr('height', H - b - t).attr('fill', 'transparent')
-    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, day(d.day) + (d.partial ? ', so far' : ''), d.new_users === null ? [note(d)] : [`${plus(d.new_users)} users, ${plus(d.new_buyers)} buyers`, d.users ? `${F.int(d.users)} users, ${F.int(d.buyers)} buyers in total` : '', note(d)].filter(Boolean)); })
+    .on('mousemove', (e, d) => { const [px, py] = d3.pointer(e, box); tip.show(px, py, d.gap ? barLabel(d) : day(d.day) + (d.partial ? ', so far' : ''), d.new_users === null ? [note(d)] : [`${plus(d.new_users)} users, ${plus(d.new_buyers)} buyers`, d.users ? `${F.int(d.users)} users, ${F.int(d.buyers)} buyers in total` : '', note(d)].filter(Boolean)); })
     .on('mouseleave', () => tip.hide());
-  svg.attr('role', 'img').attr('aria-label', `Bar chart of new users per day: ${vals.map(d => `${day(d.day)} ${plus(d.new_users)}`).join(', ')}. Since-launch average ${perDay(G.launch_avg_users)} per day.`);
-  if (rows.some(est)) box.append(el('p', 'gnote', 'Faded bars are partial or estimated: today so far, the first tracked day (counted from the first reading), or days without readings.'));
+  svg.attr('role', 'img').attr('aria-label', `Bar chart of new users per day: ${vals.map(d => `${barLabel(d)} ${plus(d.new_users)}`).join(', ')}. Since-launch average ${perDay(G.launch_avg_users)} per day.`);
+  if (rows.some(est)) box.append(el('p', 'gnote', 'Faded bars are partial or estimated: today so far, the first tracked day (counted from the first reading), or a gap in readings, shown as one combined bar.'));
 }
 
 /* ---------- Estimated ARPU ---------- */

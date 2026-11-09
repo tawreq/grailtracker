@@ -10,7 +10,7 @@
 // store). Without it, or if Blob fails, the page still works: growth falls back to the
 // since-launch average and says why.
 
-const { get, put } = require('@vercel/blob');
+const { get, head, put } = require('@vercel/blob');
 
 const PATH = 'history/users.json';
 const DAY_MS = 864e5;
@@ -43,6 +43,30 @@ async function save(history, etag) {
   await put(PATH, JSON.stringify(history), opts);
 }
 
+const isConflict = e => /precondition|etag|412/i.test(String(e && e.message));
+const SAVE_ATTEMPTS = 3;
+
+// Loads the latest history, adds the reading and saves it. If another request saved first the
+// write is rejected, so start again from what that request saved. A reading is never dropped
+// quietly: after repeated rejections it overwrites the file, and the conflict is logged.
+async function record(obs) {
+  let last;
+  for (let attempt = 1; attempt <= SAVE_ATTEMPTS; attempt++) {
+    last = await load();
+    if (!addReading(last.history, obs)) return last.history;
+    try { await save(last.history, last.etag); return last.history; }
+    catch (e) {
+      if (!isConflict(e)) throw e;
+      const current = await head(PATH).then(b => b.etag, () => 'unknown');
+      console.warn('growth history save conflict', { attempt, read_etag: last.etag, current_etag: current });
+      if (attempt < SAVE_ATTEMPTS) await new Promise(r => setTimeout(r, 150 * attempt));
+    }
+  }
+  console.error('growth history: overwriting after repeated save conflicts');
+  await save(last.history, null);
+  return last.history;
+}
+
 // Turns the history into per-day rows from the first tracked day to today.
 //   basis 'full'   - the day has a reading and so does the day before: an exact daily count.
 //   basis 'start'  - first tracked day: counted from the first reading, so it understates that day.
@@ -73,6 +97,7 @@ function dailyRows(history, today) {
 function summarize(history, { users, buyers, live_days, today }) {
   const rows = history ? dailyRows(history, today) : [];
   const full = rows.filter(r => !r.partial && r.new_users !== null);
+  const measured = full.filter(r => r.basis !== 'spread');
   const exact = full.filter(r => r.basis === 'full');
   const last7 = full.slice(-7);
   const avg = (a, f) => a.length ? a.reduce((t, r) => t + r[f], 0) / a.length : null;
@@ -86,7 +111,7 @@ function summarize(history, { users, buyers, live_days, today }) {
     launch_avg_users: users / live_days,
     launch_avg_buyers: buyers / live_days,
     today: todayRow,
-    last_full: full.length ? full[full.length - 1] : null,
+    last_full: measured.length ? measured[measured.length - 1] : null,
     avg7_users: avg(last7, 'new_users'),
     avg7_buyers: avg(last7, 'new_buyers'),
     avg7_days: last7.length,
@@ -102,12 +127,7 @@ async function trackGrowth({ users, buyers, live_days, today }) {
   if (!process.env.BLOB_READ_WRITE_TOKEN) return { ...summarize(null, base), error: 'History storage is not configured.' };
   if (!(users > 0)) return { ...summarize(null, base), error: 'No user count in the source data.' };
   try {
-    const { history, etag } = await load();
-    const changed = addReading(history, { t: new Date().toISOString(), users, buyers });
-    if (changed) {
-      try { await save(history, etag); }
-      catch (e) { if (!/precondition|etag|412/i.test(String(e && e.message))) throw e; } // another request saved first; theirs stands
-    }
+    const history = await record({ t: new Date().toISOString(), users, buyers });
     return summarize(history, base);
   } catch (e) {
     console.error('growth history failed:', e);

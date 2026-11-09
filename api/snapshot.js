@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   try {
     const D = await data.getData();
     const G = D.growth || {};
-    res.status(200).json({ ok: !G.error, users: G.users, buyers: G.buyers, days_tracked: G.days_tracked, error: G.error || null });
+    res.status(G.error ? 500 : 200).json({ ok: !G.error, users: G.users, buyers: G.buyers, days_tracked: G.days_tracked, error: G.error || null });
   } catch (e) {
     res.status(502).json({ ok: false, error: e.message });
   }
